@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using WindowsDispatcher = System.Windows.Threading.Dispatcher;
 
 namespace Microsoft.AspNetCore.Components.WebView.Wpf
@@ -17,12 +18,11 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			_windowsDispatcher = windowsDispatcher ?? throw new ArgumentNullException(nameof(windowsDispatcher));
 		}
 
-		private static Action<Exception> RethrowException = exception =>
-			ExceptionDispatchInfo.Capture(exception).Throw();
+		public event WpfDispatcherUnhandledExceptionEventHandler? UnhandledException;
 
 		public override bool CheckAccess()
 			=> _windowsDispatcher.CheckAccess();
-
+		
 		public override async Task InvokeAsync(Action workItem)
 		{
 			try
@@ -38,11 +38,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			}
 			catch (Exception ex)
 			{
-				// TODO: Determine whether this is the right kind of rethrowing pattern
-				// You do have to do something like this otherwise unhandled exceptions
-				// throw from inside Dispatcher.InvokeAsync are simply lost.
-				_ = _windowsDispatcher.BeginInvoke(RethrowException, ex);
-				throw;
+				 HandleException(ex);
 			}
 		}
 
@@ -61,11 +57,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			}
 			catch (Exception ex)
 			{
-				// TODO: Determine whether this is the right kind of rethrowing pattern
-				// You do have to do something like this otherwise unhandled exceptions
-				// throw from inside Dispatcher.InvokeAsync are simply lost.
-				_ = _windowsDispatcher.BeginInvoke(RethrowException, ex);
-				throw;
+				HandleException(ex);
 			}
 		}
 
@@ -84,11 +76,8 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			}
 			catch (Exception ex)
 			{
-				// TODO: Determine whether this is the right kind of rethrowing pattern
-				// You do have to do something like this otherwise unhandled exceptions
-				// throw from inside Dispatcher.InvokeAsync are simply lost.
-				_ = _windowsDispatcher.BeginInvoke(RethrowException, ex);
-				throw;
+				HandleException(ex);
+				return default!;
 			}
 		}
 
@@ -110,8 +99,18 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 				// TODO: Determine whether this is the right kind of rethrowing pattern
 				// You do have to do something like this otherwise unhandled exceptions
 				// throw from inside Dispatcher.InvokeAsync are simply lost.
-				_ = _windowsDispatcher.BeginInvoke(RethrowException, ex);
+				_ = _windowsDispatcher.BeginInvoke(HandleException, ex);
 				throw;
+			}
+		}
+
+		private void HandleException(Exception ex)
+		{
+			var args = new WpfDispatcherUnhandlerExceptionEventArgs(_windowsDispatcher, ex);
+			UnhandledException?.Invoke(this, args);
+			if (!args.Handled)
+			{
+				ExceptionDispatchInfo.Capture(ex).Throw();
 			}
 		}
 	}
