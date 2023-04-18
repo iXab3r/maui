@@ -1,4 +1,12 @@
 #nullable enable
 Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebView.StartPath.get -> string!
 Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebView.StartPath.set -> void
+Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebView.UnhandledException -> Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandledExceptionEventHandler?
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandledExceptionEventHandler
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.Dispatcher.get -> System.Windows.Threading.Dispatcher!
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.Exception.get -> System.Exception!
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.Handled.get -> bool
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.Handled.set -> void
+Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.WpfDispatcherUnhandlerExceptionEventArgs(System.Windows.Threading.Dispatcher! dispatcher, System.Exception! exception) -> void
 static readonly Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebView.StartPathProperty -> System.Windows.DependencyProperty!

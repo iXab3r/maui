@@ -184,6 +184,15 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			get => (EventHandler<BlazorWebViewInitializedEventArgs>)GetValue(BlazorWebViewInitializedProperty);
 			set => SetValue(BlazorWebViewInitializedProperty, value);
 		}
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		public event WpfDispatcherUnhandledExceptionEventHandler? UnhandledException
+		{
+			add => ComponentsDispatcher.UnhandledException += value;
+			remove => ComponentsDispatcher.UnhandledException -= value;
+		}
 
 		/// <summary>
 		/// Gets or sets an <see cref="IServiceProvider"/> containing services to be used by this control and also by application code.
@@ -292,7 +301,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 				logger.AddingRootComponent(rootComponent.ComponentType.FullName ?? string.Empty, rootComponent.Selector, rootComponent.Parameters?.Count ?? 0);
 
 				// Since the page isn't loaded yet, this will always complete synchronously
-				_ = rootComponent.AddToWebViewManagerAsync(_webviewManager);
+				rootComponent.AddToWebViewManagerAsync(_webviewManager).Wait();
 			}
 
 			logger.StartingInitialNavigation(StartPath);
@@ -309,7 +318,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			if (_webviewManager != null)
 			{
 				// Dispatch because this is going to be async, and we want to catch any errors
-				_ = ComponentsDispatcher.InvokeAsync(async () =>
+				ComponentsDispatcher.InvokeAsync(async () =>
 				{
 					var newItems = (eventArgs.NewItems ?? Array.Empty<RootComponent>()).Cast<RootComponent>();
 					var oldItems = (eventArgs.OldItems ?? Array.Empty<RootComponent>()).Cast<RootComponent>();
@@ -323,7 +332,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 					{
 						await item.RemoveFromWebViewManagerAsync(_webviewManager);
 					}
-				});
+				}).Wait();
 			}
 		}
 
