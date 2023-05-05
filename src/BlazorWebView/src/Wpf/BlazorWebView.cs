@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 		/// </summary>
 		public BlazorWebView()
 		{
-			ComponentsDispatcher = new WpfDispatcher(Application.Current.Dispatcher);
+			ComponentsDispatcher = new WpfDispatcher(System.Windows.Threading.Dispatcher.CurrentDispatcher);
 
 			SetValue(RootComponentsProperty, new RootComponentsCollection());
 			RootComponents.CollectionChanged += HandleRootComponentsCollectionChanged;
