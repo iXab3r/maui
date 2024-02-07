@@ -20,7 +20,7 @@ namespace Microsoft.Maui.Controls
 	{
 		const string GetResourcePathUriScheme = "maui://";
 		static ConditionalWeakTable<Type, ResourceDictionary> s_instances = new ConditionalWeakTable<Type, ResourceDictionary>();
-		readonly Dictionary<string, object> _innerDictionary = new Dictionary<string, object>();
+		readonly Dictionary<string, object> _innerDictionary = new(StringComparer.Ordinal);
 		ResourceDictionary _mergedInstance;
 		Uri _source;
 
@@ -47,7 +47,7 @@ namespace Microsoft.Maui.Controls
 			//this will return a type if the RD as an x:Class element, and codebehind
 			var type = XamlResourceIdAttribute.GetTypeForPath(assembly, resourcePath);
 			if (type != null)
-				_mergedInstance = s_instances.GetValue(type, (key) => (ResourceDictionary)Activator.CreateInstance(key));
+				_mergedInstance = s_instances.GetValue(type, _ => (ResourceDictionary)Activator.CreateInstance(type));
 			else
 				_mergedInstance = DependencyService.Get<IResourcesLoader>().CreateFromResource<ResourceDictionary>(resourcePath, assembly, lineInfo);
 			OnValuesChanged(_mergedInstance.ToArray());

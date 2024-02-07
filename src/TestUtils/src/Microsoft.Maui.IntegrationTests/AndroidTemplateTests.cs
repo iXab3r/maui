@@ -47,14 +47,14 @@ namespace Microsoft.Maui.IntegrationTests
 
 
 		[Test]
-		[TestCase("maui", "net6.0", "Debug")]
-		[TestCase("maui", "net6.0", "Release")]
-		[TestCase("maui", "net7.0", "Debug")]
-		[TestCase("maui", "net7.0", "Release")]
-		[TestCase("maui-blazor", "net6.0", "Debug")]
-		[TestCase("maui-blazor", "net6.0", "Release")]
-		[TestCase("maui-blazor", "net7.0", "Debug")]
-		[TestCase("maui-blazor", "net7.0", "Release")]
+		[TestCase("maui", DotNetPrevious, "Debug")]
+		[TestCase("maui", DotNetPrevious, "Release")]
+		[TestCase("maui", DotNetCurrent, "Debug")]
+		[TestCase("maui", DotNetCurrent, "Release")]
+		[TestCase("maui-blazor", DotNetPrevious, "Debug")]
+		[TestCase("maui-blazor", DotNetPrevious, "Release")]
+		[TestCase("maui-blazor", DotNetCurrent, "Debug")]
+		[TestCase("maui-blazor", DotNetCurrent, "Release")]
 		public void RunOnAndroid(string id, string framework, string config)
 		{
 			var projectDir = TestDirectory;
@@ -68,7 +68,7 @@ namespace Microsoft.Maui.IntegrationTests
 			Assert.IsTrue(DotnetInternal.Build(projectFile, config, target: "Install", framework: $"{framework}-android", properties: BuildProps),
 				$"Project {Path.GetFileName(projectFile)} failed to install. Check test output/attachments for errors.");
 
-			testPackage = $"com.companyname.{Path.GetFileName(projectDir).ToLower()}";
+			testPackage = $"com.companyname.{Path.GetFileName(projectDir).ToLowerInvariant()}";
 			Assert.IsTrue(XHarness.RunAndroid(testPackage, Path.Combine(projectDir, "xh-results"), -1),
 				$"Project {Path.GetFileName(projectFile)} failed to run. Check test output/attachments for errors.");
 		}

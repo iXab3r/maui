@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Platform;
 using Microsoft.Maui.Graphics.Win2D;
 using Microsoft.Maui.Handlers;
 using Microsoft.UI.Xaml;
@@ -70,7 +71,7 @@ namespace Microsoft.Maui
 
 			// Hide the visibility of the graphics view if there are no drawn elements.
 			// This way, the In-App Toolbar will work as expected.
-			_graphicsView.Visibility = WindowElements.Any() ? UI.Xaml.Visibility.Visible : UI.Xaml.Visibility.Collapsed;
+			_graphicsView.Visibility = WindowElements.Count == 0 ? UI.Xaml.Visibility.Collapsed : UI.Xaml.Visibility.Visible;
 			_graphicsView.Invalidate();
 		}
 
@@ -102,7 +103,7 @@ namespace Microsoft.Maui
 			if (!EnableDrawableTouchHandling)
 				return;
 
-			if (!_windowElements.Any())
+			if (_windowElements.Count == 0)
 				return;
 
 			if (_graphicsView == null)

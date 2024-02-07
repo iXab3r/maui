@@ -65,15 +65,44 @@ namespace Microsoft.Maui.Platform
 
 		public static void UpdateIsTextPredictionEnabled(this EditText editText, IEntry entry)
 		{
-			editText.SetInputType(entry);
+			editText.UpdateIsTextPredictionEnabled(entry as ITextInput);
+		}
+
+		public static void UpdateIsSpellCheckEnabled(this EditText editText, IEntry entry)
+		{
+			editText.UpdateIsSpellCheckEnabled(entry as ITextInput);
 		}
 
 		public static void UpdateIsTextPredictionEnabled(this EditText editText, IEditor editor)
 		{
-			if (editor.IsTextPredictionEnabled)
-				editText.InputType &= ~InputTypes.TextFlagNoSuggestions;
+			editText.UpdateIsTextPredictionEnabled(editor as ITextInput);
+		}
+
+		public static void UpdateIsSpellCheckEnabled(this EditText editText, IEditor editor)
+		{
+			editText.UpdateIsSpellCheckEnabled(editor as ITextInput);
+		}
+
+		private static void UpdateIsTextPredictionEnabled(this EditText editText, ITextInput textInput)
+		{
+			var keyboard = textInput.Keyboard;
+
+			// TextFlagAutoCorrect will correct "Whats" -> "What's"
+			// TextFlagAutoCorrect should not be confused with TextFlagAutocomplete
+			// Autocomplete property pertains to fields that will "self-fill" - like an "Address" input box that fills with your saved data
+			if (textInput.IsTextPredictionEnabled)
+				editText.InputType |= InputTypes.TextFlagAutoCorrect;
 			else
+				editText.InputType &= ~InputTypes.TextFlagAutoCorrect;
+		}
+
+		private static void UpdateIsSpellCheckEnabled(this EditText editText, ITextInput textInput)
+		{
+			// TextFlagNoSuggestions disables spellchecking (the red squiggly lines)
+			if (!textInput.IsSpellCheckEnabled)
 				editText.InputType |= InputTypes.TextFlagNoSuggestions;
+			else
+				editText.InputType &= ~InputTypes.TextFlagNoSuggestions;
 		}
 
 		public static void UpdateMaxLength(this EditText editText, IEntry entry) =>
@@ -82,42 +111,11 @@ namespace Microsoft.Maui.Platform
 		public static void UpdateMaxLength(this EditText editText, IEditor editor) =>
 			UpdateMaxLength(editText, editor.MaxLength);
 
-		public static void UpdateMaxLength(this EditText editText, int maxLength)
-		{
-			editText.SetLengthFilter(maxLength);
+		public static void UpdateMaxLength(this EditText editText, int maxLength) =>
+			PlatformInterop.UpdateMaxLength(editText, maxLength);
 
-			var newText = editText.Text.TrimToMaxLength(maxLength);
-			if (editText.Text != newText)
-				editText.Text = newText;
-		}
-
-		public static void SetLengthFilter(this EditText editText, int maxLength)
-		{
-			if (maxLength == -1)
-				maxLength = int.MaxValue;
-
-			var currentFilters = new List<IInputFilter>(editText.GetFilters() ?? new IInputFilter[0]);
-			var changed = false;
-
-			for (var i = 0; i < currentFilters.Count; i++)
-			{
-				if (currentFilters[i] is InputFilterLengthFilter)
-				{
-					currentFilters.RemoveAt(i);
-					changed = true;
-					break;
-				}
-			}
-
-			if (maxLength >= 0)
-			{
-				currentFilters.Add(new InputFilterLengthFilter(maxLength));
-				changed = true;
-			}
-
-			if (changed)
-				editText.SetFilters(currentFilters.ToArray());
-		}
+		public static void SetLengthFilter(this EditText editText, int maxLength) =>
+			PlatformInterop.SetLengthFilter(editText, maxLength);
 
 		public static void UpdatePlaceholder(this EditText editText, IPlaceholder textInput)
 		{
@@ -203,6 +201,7 @@ namespace Microsoft.Maui.Platform
 
 		public static void UpdateReturnType(this EditText editText, IEntry entry)
 		{
+			editText.SetInputType(entry);
 			editText.ImeOptions = entry.ReturnType.ToPlatform();
 		}
 
@@ -280,17 +279,13 @@ namespace Microsoft.Maui.Platform
 		{
 			var previousCursorPosition = editText.SelectionStart;
 			var keyboard = textInput.Keyboard;
-			var nativeInputTypeToUpdate = keyboard.ToInputType();
+
+			editText.InputType = keyboard.ToInputType();
 
 			if (keyboard is not CustomKeyboard)
 			{
-				// TODO: IsSpellCheckEnabled handling must be here.
-
-				if ((nativeInputTypeToUpdate & InputTypes.TextFlagNoSuggestions) != InputTypes.TextFlagNoSuggestions)
-				{
-					if (!textInput.IsTextPredictionEnabled)
-						nativeInputTypeToUpdate |= InputTypes.TextFlagNoSuggestions;
-				}
+				editText.UpdateIsTextPredictionEnabled(textInput);
+				editText.UpdateIsSpellCheckEnabled(textInput);
 			}
 
 			if (keyboard == Keyboard.Numeric)
@@ -300,14 +295,11 @@ namespace Microsoft.Maui.Platform
 
 			if (textInput is IEntry entry && entry.IsPassword)
 			{
-				if ((nativeInputTypeToUpdate & InputTypes.ClassText) == InputTypes.ClassText)
-					nativeInputTypeToUpdate |= InputTypes.TextVariationPassword;
-
-				if ((nativeInputTypeToUpdate & InputTypes.ClassNumber) == InputTypes.ClassNumber)
-					nativeInputTypeToUpdate |= InputTypes.NumberVariationPassword;
+				if (editText.InputType.HasFlag(InputTypes.ClassText))
+					editText.InputType |= InputTypes.TextVariationPassword;
+				if (editText.InputType.HasFlag(InputTypes.ClassNumber))
+					editText.InputType |= InputTypes.NumberVariationPassword;
 			}
-
-			editText.InputType = nativeInputTypeToUpdate;
 
 			if (textInput is IEditor)
 				editText.InputType |= InputTypes.TextFlagMultiLine;
@@ -328,10 +320,17 @@ namespace Microsoft.Maui.Platform
 			editText.SetSelection(previousCursorPosition);
 		}
 
-		internal static bool IsCompletedAction(this EditorActionEventArgs e, ImeAction? currentInputImeFlag)
+		internal static bool IsCompletedAction(this EditorActionEventArgs e, ImeAction currentInputImeFlag)
 		{
 			var actionId = e.ActionId;
 			var evt = e.Event;
+
+			// On API 34 it looks like they fixed the issue where the actionId is ImeAction.ImeNull when using a keyboard
+			// so I'm just setting the actionId here to whatever the user has 
+			if (actionId == ImeAction.ImeNull && evt?.KeyCode == Keycode.Enter)
+			{
+				actionId = currentInputImeFlag;
+			}
 
 			return
 				actionId == ImeAction.Done ||
@@ -357,32 +356,77 @@ namespace Microsoft.Maui.Platform
 				return false;
 
 			var rBounds = getClearButtonDrawable?.Invoke()?.Bounds;
-			var buttonWidth = rBounds?.Width();
 
-			if (buttonWidth <= 0)
+			if (rBounds is null)
+			{
+				// The button doesn't exist, or we can't retrieve it. 
 				return false;
+			}
 
-			var x = motionEvent.GetX();
-			var y = motionEvent.GetY();
+			var buttonRect = GetClearButtonLocation(rBounds, platformView);
 
-			var flowDirection = platformView.LayoutDirection;
-
-			if ((flowDirection != LayoutDirection.Ltr
-				|| x < platformView.Right - buttonWidth
-				|| x > platformView.Right - platformView.PaddingRight
-				|| y < platformView.PaddingTop
-				|| y > platformView.Height - platformView.PaddingBottom) &&
-				(flowDirection != LayoutDirection.Rtl
-				|| x < platformView.Left + platformView.PaddingLeft
-				|| x > platformView.Left + buttonWidth
-				|| y < platformView.PaddingTop
-				|| y > platformView.Height - platformView.PaddingBottom))
+			if (!RectContainsMotionEvent(buttonRect, motionEvent))
 			{
 				return false;
 			}
 
 			platformView.Text = null;
 			return true;
+		}
+
+		// Android.Graphics.Rect has a Containts(x,y) method, but it only takes `int` and the coordinates from
+		// the motion event are `float`. The we use GetX() and GetY() so our coordinates are relative to the
+		// bounds of the EditText.
+		static bool RectContainsMotionEvent(Android.Graphics.Rect rect, MotionEvent motionEvent)
+		{
+			var x = motionEvent.GetX();
+
+			if (x < rect.Left || x > rect.Right)
+			{
+				return false;
+			}
+
+			var y = motionEvent.GetY();
+
+			if (y < rect.Top || y > rect.Bottom)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		// Gets the location of the "Clear" button relative to the bounds of the EditText
+		static Android.Graphics.Rect GetClearButtonLocation(Android.Graphics.Rect buttonRect, EditText platformView)
+		{
+			// Determine the top and bottom edges of the button
+			// This assumes the button is vertically centered within the padded area of the EditText
+
+			var buttonHeight = buttonRect.Height();
+			var editAreaTop = platformView.Top + platformView.PaddingTop;
+			var editAreaHeight = (platformView.Bottom - platformView.PaddingBottom) - (editAreaTop);
+			var editAreaVerticalCenter = editAreaTop + (editAreaHeight / 2);
+
+			var topEdge = editAreaVerticalCenter - (buttonHeight / 2);
+			var bottomEdge = topEdge + buttonHeight;
+
+			// The horizontal location of the button depends on the layout direction
+			var flowDirection = platformView.LayoutDirection;
+
+			if (flowDirection == LayoutDirection.Ltr)
+			{
+				var rightEdge = platformView.Width - platformView.PaddingRight;
+				var leftEdge = rightEdge - buttonRect.Width();
+
+				return new Android.Graphics.Rect(leftEdge, topEdge, rightEdge, bottomEdge);
+			}
+			else
+			{
+				var leftEdge = platformView.PaddingLeft;
+				var rightEdge = leftEdge + buttonRect.Width();
+
+				return new Android.Graphics.Rect(leftEdge, topEdge, rightEdge, bottomEdge);
+			}
 		}
 	}
 }

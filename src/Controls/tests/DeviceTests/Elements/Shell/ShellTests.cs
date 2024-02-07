@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
@@ -15,9 +16,14 @@ using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Platform;
 using Xunit;
+using static Microsoft.Maui.DeviceTests.AssertHelpers;
 
 #if ANDROID || IOS || MACCATALYST
 using ShellHandler = Microsoft.Maui.Controls.Handlers.Compatibility.ShellRenderer;
+#endif
+
+#if IOS || MACCATALYST
+using NavigationViewHandler = Microsoft.Maui.Controls.Handlers.Compatibility.NavigationRenderer;
 #endif
 
 namespace Microsoft.Maui.DeviceTests
@@ -35,11 +41,14 @@ namespace Microsoft.Maui.DeviceTests
 					SetupShellHandlers(handlers);
 					handlers.AddHandler(typeof(NavigationPage), typeof(NavigationViewHandler));
 					handlers.AddHandler(typeof(Button), typeof(ButtonHandler));
+					handlers.AddHandler(typeof(Entry), typeof(EntryHandler));
+					handlers.AddHandler(typeof(Controls.ContentView), typeof(ContentViewHandler));
+					handlers.AddHandler(typeof(ScrollView), typeof(ScrollViewHandler));
 					handlers.AddHandler(typeof(CollectionView), typeof(CollectionViewHandler));
 				});
 			});
 		}
-
+#if !MACCATALYST
 		[Fact]
 		public async Task PageLayoutDoesNotExceedWindowBounds()
 		{
@@ -142,6 +151,28 @@ namespace Microsoft.Maui.DeviceTests
 			await CreateHandlerAndAddToWindow<IWindowHandler>(shell, (_) =>
 			{
 				finished = true;
+				return Task.CompletedTask;
+			});
+
+			Assert.True(finished);
+		}
+
+		[Fact(DisplayName = "Flyout Width Does Not Crash")]
+		public async Task FlyoutWidthDoesNotCrash()
+		{
+			SetupBuilder();
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.CurrentItem = new ContentPage();
+				shell.FlyoutBehavior = FlyoutBehavior.Flyout;
+			});
+
+			bool finished = false;
+			await CreateHandlerAndAddToWindow<IWindowHandler>(shell, (_) =>
+			{
+				finished = true;
+				shell.FlyoutWidth = 1;
 				return Task.CompletedTask;
 			});
 
@@ -441,8 +472,10 @@ namespace Microsoft.Maui.DeviceTests
 		{
 			SetupBuilder();
 
-			var page1 = new ContentPage();
-			var page2 = new ContentPage();
+			var page1 = new ContentPage()
+				{ Content = new Label() { Text = "Page 1" }, Title = "Page 1" };
+			var page2 = new ContentPage()
+				{ Content = new Label() { Text = "Page 2" }, Title = "Page 2" };
 
 			var shell = await CreateShellAsync((shell) =>
 			{
@@ -541,18 +574,23 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				await OnLoadedAsync(page1);
 				Assert.Equal(titleView1.ToPlatform(), GetTitleView(handler));
-				await shell.GoToAsync("//Item2");
 
-				Assert.True(await AssertionExtensions.Wait(() => titleView2.Handler != null && titleView2.ToPlatform() == GetTitleView(handler)));
+				bool viewIsTitleView(IView view)
+				{
+					return view.Handler != null && view.ToPlatform() == GetTitleView(handler);
+				}
+
+				await shell.GoToAsync("//Item2");
+				await AssertEventually(() => viewIsTitleView(titleView2));
+
 				await shell.GoToAsync("//Item1");
+				await AssertEventually(() => viewIsTitleView(titleView1));
 
-				Assert.True(await AssertionExtensions.Wait(() => titleView1.Handler != null && titleView1.ToPlatform() == GetTitleView(handler)));
 				await shell.GoToAsync("//Item2");
+				await AssertEventually(() => viewIsTitleView(titleView2));
 
-				Assert.True(await AssertionExtensions.Wait(() => titleView2.Handler != null && titleView2.ToPlatform() == GetTitleView(handler)));
 				await shell.GoToAsync("//Item3");
-
-				Assert.True(await AssertionExtensions.Wait(() => shellTitleView.Handler != null && shellTitleView.ToPlatform() == GetTitleView(handler)));
+				await AssertEventually(() => viewIsTitleView(shellTitleView));
 			});
 		}
 
@@ -591,22 +629,22 @@ namespace Microsoft.Maui.DeviceTests
 			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
 			{
 				await OnLoadedAsync(page1);
-				Assert.True(await AssertionExtensions.Wait(WaitCondition));
+				await AssertEventually(WaitCondition);
 
 				await shell.GoToAsync("//Item2");
-				Assert.True(await AssertionExtensions.Wait(WaitCondition));
+				await AssertEventually(WaitCondition);
 
 				await shell.GoToAsync("//Item1");
-				Assert.True(await AssertionExtensions.Wait(WaitCondition));
+				await AssertEventually(WaitCondition);
 
 				await shell.GoToAsync("//Item2");
-				Assert.True(await AssertionExtensions.Wait(WaitCondition));
+				await AssertEventually(WaitCondition);
 
 				await shell.Navigation.PushAsync(page3);
-				Assert.True(await AssertionExtensions.Wait(WaitCondition));
+				await AssertEventually(WaitCondition);
 
 				await shell.Navigation.PopAsync();
-				Assert.True(await AssertionExtensions.Wait(WaitCondition));
+				await AssertEventually(WaitCondition);
 
 				bool WaitCondition()
 				{
@@ -782,6 +820,7 @@ namespace Microsoft.Maui.DeviceTests
 				};
 
 				Shell.SetBackButtonBehavior(secondPage, behavior);
+				await AssertEventually(() => !IsBackButtonVisible(shell.Handler));
 				Assert.False(IsBackButtonVisible(shell.Handler));
 				behavior.IsVisible = true;
 				NavigationPage.SetHasBackButton(shell.CurrentPage, true);
@@ -880,10 +919,15 @@ namespace Microsoft.Maui.DeviceTests
 
 			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(navPage), async (handler) =>
 			{
+				bool viewIsTitleView(IView view)
+				{
+					return view.Handler != null && view.ToPlatform() == GetTitleView(handler);
+				}
+
 				await navPage.Navigation.PushAsync(page2);
-				Assert.True(await AssertionExtensions.Wait(() => titleView1.Handler != null && titleView1.ToPlatform() == GetTitleView(handler)));
+				await AssertEventually(() => viewIsTitleView(titleView1));
 				Shell.SetTitleView(page2, titleView2);
-				Assert.True(await AssertionExtensions.Wait(() => titleView2.Handler != null && titleView2.ToPlatform() == GetTitleView(handler)));
+				await AssertEventually(() => viewIsTitleView(titleView2));
 			});
 		}
 
@@ -909,10 +953,10 @@ namespace Microsoft.Maui.DeviceTests
 			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(navPage), async (handler) =>
 			{
 				await navPage.Navigation.PushAsync(page2);
-				Assert.True(await AssertionExtensions.Wait(() => "Page 2" == GetToolbarTitle(handler)));
+				await AssertEventually(() => "Page 2" == GetToolbarTitle(handler));
 				page2.Title = "New Title";
 				page1.Title = "Previous Page Title"; // Ensuring this doesn't influence title
-				Assert.True(await AssertionExtensions.Wait(() => "New Title" == GetToolbarTitle(handler)));
+				await AssertEventually(() => "New Title" == GetToolbarTitle(handler));
 			});
 		}
 
@@ -977,6 +1021,8 @@ namespace Microsoft.Maui.DeviceTests
 					{
 						new Label(),
 						new Button(),
+						new Controls.ContentView(),
+						new ScrollView(),
 						new CollectionView(),
 					}
 				};
@@ -986,19 +1032,54 @@ namespace Microsoft.Maui.DeviceTests
 				await shell.Navigation.PopAsync();
 			});
 
-			// As we add more controls to this test, more GCs will be required
-			for (int i = 0; i < 16; i++)
-			{
-				if (!pageReference.IsAlive)
-					break;
-				await Task.Yield();
-				GC.Collect();
-				GC.WaitForPendingFinalizers();
-			}
-
-			Assert.NotNull(pageReference);
-			Assert.False(pageReference.IsAlive, "Page should not be alive!");
+			await AssertionExtensions.WaitForGC(pageReference);
 		}
+
+		//HideSoftInputOnTapped doesn't currently do anything on windows
+#if !WINDOWS
+		[Fact(DisplayName = "HideSoftInputOnTapped Doesn't Crash If Entry Is Still Focused After Window Is Null")]
+		public async Task HideSoftInputOnTappedDoesntCrashIfEntryIsStillFocusedAfterWindowIsNull()
+		{
+			SetupBuilder();
+
+			Entry entry1;
+			Entry entry2;
+
+			var rootPage = CreatePage(out entry1);
+			var nextPage = CreatePage(out entry2);
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.CurrentItem = rootPage;
+			});
+
+			await CreateHandlerAndAddToWindow<IWindowHandler>(shell, async (handler) =>
+			{
+				entry1.Focus();
+				await entry1.WaitForFocused();
+
+				await rootPage.Navigation.PushAsync(nextPage);
+				entry2.Focus();
+				await entry2.WaitForFocused();
+
+				await shell.GoToAsync("..", false);
+			});
+
+			ContentPage CreatePage(out Entry entry)
+			{
+				entry = new Entry();
+
+				return new ContentPage()
+				{
+					HideSoftInputOnTapped = true,
+					Content = new VerticalStackLayout()
+					{
+						entry
+					}
+				};
+			}
+		}
+#endif
 
 		[Fact(DisplayName = "Can Reuse Pages")]
 		public async Task CanReusePages()
@@ -1022,6 +1103,92 @@ namespace Microsoft.Maui.DeviceTests
 			});
 		}
 
+		[Fact(DisplayName = "Shell add then remove items from selected item")]
+		public async Task ShellAddRemoveItems()
+		{
+			FlyoutItem rootItem = null;
+			ShellItem homeItem = null;
+			int itemCount = 3;
+
+			SetupBuilder();
+			var shell = await CreateShellAsync((shell) =>
+			{
+				shell.FlyoutBehavior = FlyoutBehavior.Locked;
+				homeItem = new ShellContent()
+				{
+					Title = "Home",
+					Route = "MainPage",
+					Content = new ContentPage()
+				};
+				shell.Items.Add(homeItem);
+
+				rootItem = new FlyoutItem()
+				{
+					Title = "Items",
+					Route = "Items",
+					FlyoutDisplayOptions = FlyoutDisplayOptions.AsMultipleItems
+				};
+
+				for (int i = 0; i < itemCount; i++)
+				{
+					var shellContent = new ShellContent
+					{
+						Content = new ContentPage(),
+						Title = $"Item {i}",
+						Route = $"Item{i}"
+					};
+					rootItem.Items.Add(shellContent);
+				}
+				shell.Items.Add(rootItem);
+			});
+
+			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
+			{
+				rootItem.IsVisible = true;
+
+				shell.CurrentItem = rootItem.Items.Last();
+
+				// Wait for the rootItem to finish loading before we remove items.
+				// If we just start removing items directly after setting the current item
+				// This can cause the platform to crash since we're pulling the
+				// carpet out from under it while it's trying to load.
+				await OnLoadedAsync(shell.CurrentPage);
+
+				// Remove all root child items
+				for (int i = 0; i < itemCount; i++)
+				{
+					rootItem.Items.RemoveAt(0);
+				}
+
+				shell.CurrentItem = homeItem;
+				Assert.True(shell.CurrentSection.Title == "Home");
+			});
+		}
+
+		[Fact(DisplayName = "Can Clear ShellContent")]
+		public async Task CanClearShellContent()
+		{
+			SetupBuilder();
+			var page = new ContentPage();
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.CurrentItem = new ShellContent { Content = page };
+			});
+
+			var appearanceObserversField = shell.GetType().GetField("_appearanceObservers", BindingFlags.Instance | BindingFlags.NonPublic);
+			Assert.NotNull(appearanceObserversField);
+			var appearanceObservers = appearanceObserversField.GetValue(shell) as IList;
+			Assert.NotNull(appearanceObservers);
+
+			await CreateHandlerAndAddToWindow<IWindowHandler>(shell, _ =>
+			{
+				int count = appearanceObservers.Count;
+				shell.Items.Clear();
+				shell.CurrentItem = new ShellContent { Content = page };
+				Assert.Equal(count, appearanceObservers.Count); // Count doesn't increase
+			});
+		}
+#endif
 		protected Task<Shell> CreateShellAsync(Action<Shell> action) =>
 			InvokeOnMainThreadAsync(() =>
 			{

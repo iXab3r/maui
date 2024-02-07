@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using Android.Graphics;
+using Android.Graphics.Fonts;
 using Android.Util;
 using Microsoft.Extensions.Logging;
 using AApplication = Android.App.Application;
@@ -130,6 +131,27 @@ namespace Microsoft.Maui
 			return null;
 		}
 
+		static Typeface? LoadDefaultTypeface(string fontfamily)
+		{
+			switch (fontfamily.ToLowerInvariant())
+			{
+				case "monospace":
+					return Typeface.Monospace;
+				case "sansserif":
+				case "sans-serif":
+					return Typeface.SansSerif;
+				case "serif":
+					return Typeface.Serif;
+				default:
+					if (fontfamily.StartsWith("sansserif-", StringComparison.OrdinalIgnoreCase) ||
+						fontfamily.StartsWith("sans-serif-", StringComparison.OrdinalIgnoreCase))
+					{
+						return Typeface.Create(fontfamily, TypefaceStyle.Normal);
+					}
+					return null;
+			}
+		}
+
 		Typeface? CreateTypeface((string? fontFamilyName, FontWeight weight, bool italic) fontData)
 		{
 			var (fontFamily, weight, italic) = fontData;
@@ -140,7 +162,9 @@ namespace Microsoft.Maui
 
 			if (!string.IsNullOrWhiteSpace(fontFamily))
 			{
-				if (GetFromAssets(fontFamily) is Typeface typeface)
+				if (LoadDefaultTypeface(fontFamily) is Typeface systemTypeface)
+					result = systemTypeface;
+				else if (GetFromAssets(fontFamily) is Typeface typeface)
 					result = typeface;
 				else
 					result = Typeface.Create(fontFamily, style);
@@ -154,7 +178,7 @@ namespace Microsoft.Maui
 			return result;
 		}
 
-		TypefaceStyle ToTypefaceStyle(FontWeight weight, bool italic)
+		static TypefaceStyle ToTypefaceStyle(FontWeight weight, bool italic)
 		{
 			var style = TypefaceStyle.Normal;
 			var bold = weight >= FontWeight.Bold;
@@ -167,11 +191,11 @@ namespace Microsoft.Maui
 			return style;
 		}
 
-		string FontNameToFontFile(string fontFamily)
+		static string FontNameToFontFile(string fontFamily)
 		{
 			fontFamily ??= string.Empty;
 
-			int hashtagIndex = fontFamily.IndexOf("#", StringComparison.Ordinal);
+			int hashtagIndex = fontFamily.IndexOf('#', StringComparison.Ordinal);
 			if (hashtagIndex >= 0)
 				return fontFamily.Substring(0, hashtagIndex);
 

@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Platform;
 using Microsoft.Maui.Graphics.Win2D;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
@@ -129,12 +130,12 @@ namespace Microsoft.Maui.Platform
 			_borderPath?.UpdateStrokeLineJoin(Border.StrokeLineJoin);
 		}
 
-		async partial void ShadowChanged()
+		partial void ShadowChanged()
 		{
 			if (HasShadow)
-				UpdateShadow();
+				UpdateShadowAsync().FireAndForget(IPlatformApplication.Current?.Services?.CreateLogger(nameof(WrapperView)));
 			else
-				await CreateShadowAsync();
+				CreateShadowAsync().FireAndForget(IPlatformApplication.Current?.Services?.CreateLogger(nameof(WrapperView)));
 		}
 
 		void OnChildSizeChanged(object sender, SizeChangedEventArgs e)
@@ -143,7 +144,7 @@ namespace Microsoft.Maui.Platform
 
 			UpdateClip();
 			UpdateBorder();
-			UpdateShadow();
+			UpdateShadowAsync().FireAndForget(IPlatformApplication.Current?.Services?.CreateLogger(nameof(WrapperView)));
 		}
 
 		void OnChildVisibilityChanged(DependencyObject sender, DependencyProperty dp)
@@ -212,9 +213,7 @@ namespace Microsoft.Maui.Platform
 			var compositor = hostVisual.Compositor;
 
 			_dropShadow = compositor.CreateDropShadow();
-			SetShadowProperties(_dropShadow, Shadow);
-
-			_dropShadow.Mask = await Child.GetAlphaMaskAsync();
+			await SetShadowPropertiesAsync(_dropShadow, Shadow);
 
 			_shadowVisual = compositor.CreateSpriteVisual();
 			_shadowVisual.Size = new Vector2((float)width, (float)height);
@@ -224,10 +223,10 @@ namespace Microsoft.Maui.Platform
 			ElementCompositionPreview.SetElementChildVisual(_shadowHost, _shadowVisual);
 		}
 
-		void UpdateShadow()
+		async Task UpdateShadowAsync()
 		{
 			if (_dropShadow != null)
-				SetShadowProperties(_dropShadow, Shadow);
+				await SetShadowPropertiesAsync(_dropShadow, Shadow);
 
 			UpdateShadowSize();
 		}
@@ -262,7 +261,7 @@ namespace Microsoft.Maui.Platform
 			}
 		}
 
-		static void SetShadowProperties(DropShadow dropShadow, IShadow? mauiShadow)
+		async Task SetShadowPropertiesAsync(DropShadow dropShadow, IShadow? mauiShadow)
 		{
 			float blurRadius = 10f;
 			float opacity = 1f;
@@ -284,6 +283,7 @@ namespace Microsoft.Maui.Platform
 				dropShadow.Color = shadowColor.ToWindowsColor();
 
 			dropShadow.Offset = new Vector3((float)offset.X, (float)offset.Y, 0);
+			dropShadow.Mask = await Child.GetAlphaMaskAsync();
 		}
 	}
 }

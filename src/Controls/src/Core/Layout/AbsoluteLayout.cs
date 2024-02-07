@@ -21,11 +21,11 @@ namespace Microsoft.Maui.Controls
 
 		#region Attached Properties
 
-		/// <include file="../../../docs/Microsoft.Maui.Controls/AbsoluteLayout.xml" path="//Member[@MemberName='LayoutFlagsProperty']/Docs/*" />
+		/// <summary>Bindable property for attached property <c>LayoutFlags</c>.</summary>
 		public static readonly BindableProperty LayoutFlagsProperty = BindableProperty.CreateAttached("LayoutFlags",
 			typeof(AbsoluteLayoutFlags), typeof(AbsoluteLayout), AbsoluteLayoutFlags.None);
 
-		/// <include file="../../../docs/Microsoft.Maui.Controls/AbsoluteLayout.xml" path="//Member[@MemberName='LayoutBoundsProperty']/Docs/*" />
+		/// <summary>Bindable property for attached property <c>LayoutBounds</c>.</summary>
 		public static readonly BindableProperty LayoutBoundsProperty = BindableProperty.CreateAttached("LayoutBounds",
 			typeof(Rect), typeof(AbsoluteLayout), new Rect(0, 0, AutoSize, AutoSize), propertyChanged: LayoutBoundsPropertyChanged);
 
@@ -154,6 +154,11 @@ namespace Microsoft.Maui.Controls
 
 		class AbsoluteLayoutInfo
 		{
+			public AbsoluteLayoutInfo()
+			{
+				LayoutBounds = new Rect(0, 0, AutoSize, AutoSize);
+			}
+
 			public AbsoluteLayoutFlags LayoutFlags { get; set; }
 			public Rect LayoutBounds { get; set; }
 		}

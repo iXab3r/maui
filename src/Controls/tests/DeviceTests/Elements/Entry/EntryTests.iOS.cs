@@ -8,23 +8,24 @@ using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Platform;
 using UIKit;
 using Xunit;
+using static Microsoft.Maui.DeviceTests.AssertHelpers;
 
 namespace Microsoft.Maui.DeviceTests
 {
 	public partial class EntryTests
 	{
-		UITextField GetPlatformControl(EntryHandler handler) =>
+		static UITextField GetPlatformControl(EntryHandler handler) =>
 			(UITextField)handler.PlatformView;
 
-		Task<string> GetPlatformText(EntryHandler handler)
+		static Task<string> GetPlatformText(EntryHandler handler)
 		{
 			return InvokeOnMainThreadAsync(() => GetPlatformControl(handler).Text);
 		}
 
-		void SetPlatformText(EntryHandler entryHandler, string text) =>
+		static void SetPlatformText(EntryHandler entryHandler, string text) =>
 			GetPlatformControl(entryHandler).Text = text;
 
-		int GetPlatformCursorPosition(EntryHandler entryHandler)
+		static int GetPlatformCursorPosition(EntryHandler entryHandler)
 		{
 			var textField = GetPlatformControl(entryHandler);
 
@@ -34,7 +35,7 @@ namespace Microsoft.Maui.DeviceTests
 			return -1;
 		}
 
-		int GetPlatformSelectionLength(EntryHandler entryHandler)
+		static int GetPlatformSelectionLength(EntryHandler entryHandler)
 		{
 			var textField = GetPlatformControl(entryHandler);
 
@@ -225,7 +226,7 @@ namespace Microsoft.Maui.DeviceTests
 		{
 			[Theory]
 			[ClassData(typeof(ControlsPageTypesTestCases))]
-			public async Task NextMovesToNextEntry(string page)
+			public async Task NextMovesToNextEntry(ControlsPageTypesTestCase page)
 			{
 				bool isFocused = false;
 				EnsureHandlerCreated(builder =>
@@ -263,7 +264,7 @@ namespace Microsoft.Maui.DeviceTests
 				await CreateHandlerAndAddToWindow(rootPage, async () =>
 				{
 					KeyboardAutoManager.GoToNextResponderOrResign(entry1.ToPlatform());
-					await AssertionExtensions.Wait(() => entry2.IsFocused);
+					await AssertEventually(() => entry2.IsFocused);
 					isFocused = entry2.IsFocused;
 				});
 

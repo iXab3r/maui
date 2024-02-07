@@ -23,7 +23,7 @@ namespace Microsoft.Maui.IntegrationTests
 		/// <param name="targetDevice"></param>
 		/// <param name="launchTimeoutSeconds"></param>
 		/// <returns>True if the app launch command timed out, false if it exits early.</returns>
-		public static bool RunAppleForTimeout(string appPath, string resultDir, string targetDevice, int launchTimeoutSeconds = 120)
+		public static bool RunAppleForTimeout(string appPath, string resultDir, string targetDevice, int launchTimeoutSeconds = 75)
 		{
 			var timeoutString = TimeSpan.FromSeconds(launchTimeoutSeconds).ToString();
 			var args = $"apple run --app=\"{appPath}\" --output-directory=\"{resultDir}\" --target={targetDevice} --timeout=\"{timeoutString}\" --verbosity=Debug";
@@ -49,12 +49,12 @@ namespace Microsoft.Maui.IntegrationTests
 
 		public static bool InstallSimulator(string targetDevice)
 		{
-			return Run($"apple simulators install \"{targetDevice}\"");
+			return Run($"apple simulators install \"{targetDevice}\" ");
 		}
 
 		public static string GetSimulatorUDID(string targetDevice)
 		{
-			return RunForOutput($"apple device \"{targetDevice}\"", out _, timeoutInSeconds: 30);
+			return RunForOutput($"apple device \"{targetDevice}\" ", out _, timeoutInSeconds: 30);
 		}
 
 		public static bool Run(string args, int timeoutInSeconds = DEFAULT_TIMEOUT)
@@ -68,11 +68,7 @@ namespace Microsoft.Maui.IntegrationTests
 
 		public static string RunForOutput(string args, out int exitCode, int timeoutInSeconds = DEFAULT_TIMEOUT)
 		{
-			var dotnetToolUserPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dotnet", "tools");
-			var xharnessToolPath = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dotnet", "tools"),
-				TestEnvironment.IsWindows ? "xharness.exe" : XHarnessTool);
-			var xharnessTool = File.Exists(xharnessToolPath) ? xharnessToolPath : XHarnessTool;
-			return ToolRunner.Run(xharnessTool, args, out exitCode, timeoutInSeconds: timeoutInSeconds);
+			return DotnetInternal.RunForOutput(XHarnessTool, args, out exitCode, timeoutInSeconds);
 		}
 
 	}

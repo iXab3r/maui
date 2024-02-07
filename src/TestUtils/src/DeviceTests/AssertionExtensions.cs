@@ -1,28 +1,63 @@
 using System;
+using System.Reflection.Metadata;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.Platform;
 using Xunit;
 using Xunit.Sdk;
+using static Microsoft.Maui.DeviceTests.AssertHelpers;
 
 namespace Microsoft.Maui.DeviceTests
 {
 	public static partial class AssertionExtensions
 	{
-		static readonly Random rnd = new Random();
-
-		public static async Task<bool> Wait(Func<bool> exitCondition, int timeout = 1000)
+		public static async Task WaitForGC(params WeakReference[] references)
 		{
-			while ((timeout -= 100) > 0)
+			Assert.NotEmpty(references);
+
+			bool referencesCollected()
 			{
-				if (!exitCondition.Invoke())
-					await Task.Delay(rnd.Next(100, 200));
-				else
-					break;
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+
+				foreach (var reference in references)
+				{
+					Assert.NotNull(reference);
+					if (reference.IsAlive)
+					{
+						return false;
+					}
+				}
+
+				return true;
 			}
 
-			return exitCondition.Invoke();
+			try
+			{
+				await AssertEventually(referencesCollected, timeout: 10000);
+			}
+			catch (XunitException ex)
+			{
+				throw new XunitException(ListLivingReferences(references), ex);
+			}
+		}
+
+		static string ListLivingReferences(WeakReference[] references)
+		{
+			StringBuilder stringBuilder = new StringBuilder();
+
+			foreach (var weakReference in references)
+			{
+				if (weakReference.IsAlive && weakReference.Target is object x)
+				{
+					stringBuilder.Append($"Reference to {x} (type {x.GetType()} is still alive.\n");
+				}
+			}
+
+			return stringBuilder.ToString();
 		}
 
 		public static void AssertHasFlag(this Enum self, Enum flag)
@@ -30,19 +65,7 @@ namespace Microsoft.Maui.DeviceTests
 			var hasFlag = self.HasFlag(flag);
 
 			if (!hasFlag)
-				throw new ContainsException(flag, self);
-		}
-
-		public static void AssertWithMessage(Action assertion, string message)
-		{
-			try
-			{
-				assertion();
-			}
-			catch (Exception e)
-			{
-				Assert.True(false, $"Message: {message} Failure: {e}");
-			}
+				throw ContainsException.ForSetItemNotFound(flag.ToString(), self.ToString());
 		}
 
 		public static void CloseEnough(double expected, double actual, double epsilon = 0.2, string? message = null)
@@ -60,25 +83,25 @@ namespace Microsoft.Maui.DeviceTests
 			// to the Visual Tree
 			var platformViewHandler = (IPlatformViewHandler)view.Handler!;
 			var platformView = platformViewHandler.PlatformView!;
+			var mauiContext = platformViewHandler.MauiContext ?? throw new InvalidOperationException("MauiContext cannot be null here");
+			var dispatcher = mauiContext.GetDispatcher();
 
 #if WINDOWS
-			var dispatcher = platformViewHandler.MauiContext!.GetDispatcher();
 			return dispatcher.DispatchAsync(async () =>
 			{
 				if (platformView.XamlRoot is null)
 				{
 					if (!expectation)
-						await AttachAndRun(platformView, RunAssertions);
+						await AttachAndRun(platformView, RunAssertions, mauiContext);
 					else
-						await AttachAndRun(platformViewHandler.ContainerView!, RunAssertions);
+						await AttachAndRun(platformViewHandler.ContainerView!, RunAssertions, mauiContext);
 				}
 				else
 					RunAssertions();
 			});
 
 #else
-			RunAssertions();
-			return Task.CompletedTask;
+			return dispatcher.DispatchAsync(RunAssertions);
 #endif
 			void RunAssertions()
 			{
@@ -86,6 +109,54 @@ namespace Microsoft.Maui.DeviceTests
 				Assert.Equal(expectation, view.Handler?.ContainerView is not null);
 				var parentView = platformView?.GetParent();
 				Assert.Equal(expectation, parentView is WrapperView);
+			}
+		}
+
+		public static Task AttachAndRun<THandler>(this IView view, Action<THandler> action, IMauiContext mauiContext, Func<IView, Task<THandler>> createHandler)
+		where THandler : IPlatformViewHandler =>
+			view.AttachAndRun<bool, THandler>((handler) =>
+			{
+				action(handler);
+				return Task.FromResult(true);
+			}, mauiContext, createHandler);
+
+		public static Task AttachAndRun<THandler>(this IView view, Func<THandler, Task> action, IMauiContext mauiContext, Func<IView, Task<THandler>> createHandler)
+			where THandler : IPlatformViewHandler =>
+				view.AttachAndRun<bool, THandler>(async (handler) =>
+				{
+					await action(handler);
+					return true;
+				}, mauiContext, createHandler);
+
+		public static Task<T> AttachAndRun<T, THandler>(this IView view, Func<THandler, T> action, IMauiContext mauiContext, Func<IView, Task<THandler>> createHandler)
+			where THandler : IPlatformViewHandler
+		{
+			Func<THandler, Task<T>> boop = (handler) =>
+			{
+				return Task.FromResult(action.Invoke(handler));
+			};
+
+			return view.AttachAndRun<T, THandler>(boop, mauiContext, createHandler);
+		}
+
+		public static Task<T> AttachAndRun<T, THandler>(this IView view, Func<THandler, Task<T>> action, IMauiContext mauiContext, Func<IView, Task<THandler>> createHandler)
+			where THandler : IPlatformViewHandler
+		{
+			var dispatcher = mauiContext.GetDispatcher();
+
+			if (dispatcher.IsDispatchRequired)
+				return dispatcher.DispatchAsync(Run);
+
+			return Run();
+
+			async Task<T> Run()
+			{
+				var handler = await createHandler(view);
+#if WINDOWS
+				return await view.ToPlatform(mauiContext).AttachAndRun<T>((window) => action(handler), mauiContext);
+#else
+				return await view.ToPlatform().AttachAndRun(() => action(handler));
+#endif
 			}
 		}
 
@@ -140,10 +211,10 @@ namespace Microsoft.Maui.DeviceTests
 			view.ToPlatform().FocusView(timeout);
 
 		public static bool IsAccessibilityElement(this IView view) =>
-			view.ToPlatform().IsAccessibilityElement();
+			(view.Handler as IPlatformViewHandler)?.PlatformView?.IsAccessibilityElement() == true;
 
 		public static bool IsExcludedWithChildren(this IView view) =>
-			view.ToPlatform().IsExcludedWithChildren();
+			(view.Handler as IPlatformViewHandler)?.PlatformView?.IsExcludedWithChildren() == true;
 
 		public static IDisposable OnUnloaded(this IElement element, Action action)
 		{
@@ -173,6 +244,27 @@ namespace Microsoft.Maui.DeviceTests
 				return false;
 
 			return pvh.PlatformView?.IsLoaded() == true;
+		}
+
+		public static async Task AssertEventually(this Func<bool> assertion, int timeout = 1000, int interval = 100, string message = "Assertion timed out")
+		{
+			do
+			{
+				if (assertion())
+				{
+					return;
+				}
+
+				await Task.Delay(interval);
+				timeout -= interval;
+
+			}
+			while (timeout >= 0);
+
+			if (!assertion())
+			{
+				throw new XunitException(message);
+			}
 		}
 	}
 }

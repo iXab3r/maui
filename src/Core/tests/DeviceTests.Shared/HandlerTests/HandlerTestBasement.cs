@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Maui.DeviceTests.ImageAnalysis;
 using Microsoft.Maui.DeviceTests.Stubs;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.Graphics;
@@ -10,6 +11,11 @@ using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Platform;
 using Microsoft.Maui.TestUtils.DeviceTests.Runners;
 using Xunit;
+
+#if WINDOWS
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+#endif
 
 namespace Microsoft.Maui.DeviceTests
 {
@@ -33,6 +39,7 @@ namespace Microsoft.Maui.DeviceTests
 			var appBuilder = MauiApp.CreateBuilder();
 
 			appBuilder.Services.AddSingleton<IDispatcherProvider>(svc => TestDispatcher.Provider);
+			appBuilder.Services.AddKeyedSingleton<IDispatcher>(typeof(IApplication), (svc, key) => TestDispatcher.Current);
 			appBuilder.Services.AddScoped<IDispatcher>(svc => TestDispatcher.Current);
 			appBuilder.Services.AddSingleton<IApplication>((_) => new CoreApplicationStub());
 
@@ -82,7 +89,6 @@ namespace Microsoft.Maui.DeviceTests
 			where THandler : IElementHandler, new()
 			=> CreateHandler<THandler, THandler>(view, mauiContext);
 
-
 		protected void InitializeViewHandler(IElement element, IElementHandler handler, IMauiContext mauiContext = null)
 		{
 			mauiContext ??= MauiContext;
@@ -128,6 +134,22 @@ namespace Microsoft.Maui.DeviceTests
 #endif
 
 				view.Arrange(new Rect(0, 0, w, h));
+
+#if WINDOWS
+				if (viewHandler.PlatformView is SwipeControl swipeControl && !swipeControl.IsLoaded)
+				{
+					void SwipeViewLoaded(object s, RoutedEventArgs e)
+					{
+						swipeControl.Arrange(new global::Windows.Foundation.Rect(0, 0, w, h));
+						swipeControl.Loaded -= SwipeViewLoaded;
+					};
+
+					// Doing the SwipeItems arrange before the view has loaded causes the SwipeControl
+					// to crash on the first layout pass. So we wait until the control has been loaded.
+					swipeControl.Loaded += SwipeViewLoaded;
+				}
+				else
+#endif
 				viewHandler.PlatformArrange(view.Frame);
 			}
 		}
@@ -145,22 +167,32 @@ namespace Microsoft.Maui.DeviceTests
 			return handler;
 		}
 
-		protected IPlatformViewHandler CreateHandler(IElement view, Type handlerType)
+		protected IPlatformViewHandler CreateHandler(IElement view, Type handlerType) =>
+			CreateHandler(view, handlerType, MauiContext);
+
+		protected IPlatformViewHandler CreateHandler(IElement view, Type handlerType, IMauiContext mauiContext)
 		{
 			if (view.Handler is IPlatformViewHandler t)
 				return t;
 
 			var handler = (IPlatformViewHandler)Activator.CreateInstance(handlerType);
-			InitializeViewHandler(view, handler, MauiContext);
+			InitializeViewHandler(view, handler, mauiContext);
 			return handler;
 
 		}
 
-		protected Task ValidateHasColor(IView view, Color color, Type handlerType, Action action = null, string updatePropertyValue = null)
+		protected Task ValidateHasColor(
+			IView view,
+			Color color,
+			Type handlerType,
+			Action action = null,
+			string updatePropertyValue = null,
+			double? tolerance = null)
 		{
 			return InvokeOnMainThreadAsync(async () =>
 			{
-				var handler = CreateHandler(view, handlerType);
+				var mauiContext = view?.Handler?.MauiContext ?? MauiContext;
+				var handler = CreateHandler(view, handlerType, mauiContext);
 				var plaformView = handler.ToPlatform();
 				action?.Invoke();
 				if (!string.IsNullOrEmpty(updatePropertyValue))
@@ -168,9 +200,75 @@ namespace Microsoft.Maui.DeviceTests
 					handler.UpdateValue(updatePropertyValue);
 				}
 
-				await plaformView.AssertContainsColor(color);
+				await plaformView.AssertContainsColor(color, mauiContext, tolerance: tolerance);
 			});
 		}
+
+		public Task AttachAndRun(IView view, Action<IPlatformViewHandler> action) =>
+				AttachAndRun<bool>(view, (handler) =>
+				{
+					action(handler);
+					return Task.FromResult(true);
+				});
+
+		public Task AttachAndRun(IView view, Func<IPlatformViewHandler, Task> action) =>
+				AttachAndRun<bool>(view, async (handler) =>
+				{
+					await action(handler);
+					return true;
+				});
+
+		public Task<T> AttachAndRun<T>(IView view, Func<IPlatformViewHandler, T> action)
+		{
+			Func<IPlatformViewHandler, Task<T>> boop = (handler) =>
+			{
+				return Task.FromResult(action.Invoke(handler));
+			};
+
+			return AttachAndRun<T>(view, boop);
+		}
+
+		public Task<T> AttachAndRun<T>(IView view, Func<IPlatformViewHandler, Task<T>> action)
+		{
+			return view.AttachAndRun<T, IPlatformViewHandler>((handler) =>
+			{
+				return action.Invoke((IPlatformViewHandler)handler);
+			}, MauiContext, (view) =>
+			{
+				if (view.Handler is IPlatformViewHandler platformViewHandler)
+					return Task.FromResult(platformViewHandler);
+
+				var handler = view.ToHandler(MauiContext);
+				InitializeViewHandler(view, handler, MauiContext);
+				return Task.FromResult(handler);
+			});
+		}
+
+		public Task AttachAndRun<TPlatformHandler>(IView view, Func<TPlatformHandler, Task> action)
+			where TPlatformHandler : IPlatformViewHandler, IElementHandler, new()
+			=>
+			view.AttachAndRun<bool, TPlatformHandler>(async (handler) =>
+			{
+				await action(handler);
+				return true;
+			}, MauiContext, async (view) =>
+			{
+				var result = await InvokeOnMainThreadAsync(() => CreateHandler<TPlatformHandler>(view));
+				return result;
+			});
+
+		public Task AttachAndRun<TPlatformHandler>(IView view, Action<TPlatformHandler> action)
+			where TPlatformHandler : IPlatformViewHandler, IElementHandler, new()
+			=>
+			view.AttachAndRun<bool, TPlatformHandler>((handler) =>
+			{
+				action(handler);
+				return true;
+			}, MauiContext, async (view) =>
+			{
+				var result = await InvokeOnMainThreadAsync(() => CreateHandler<TPlatformHandler>(view));
+				return result;
+			});
 
 		protected Task AssertColorAtPoint(IView view, Color color, Type handlerType, int x, int y)
 		{
@@ -178,9 +276,31 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				var plaformView = CreateHandler(view, handlerType).ToPlatform();
 #if WINDOWS
-				await plaformView.AssertColorAtPointAsync(color.ToWindowsColor(), x, y);
+				await plaformView.AssertColorAtPointAsync(color.ToWindowsColor(), x, y, MauiContext);
 #else
-				await plaformView.AssertColorAtPointAsync(color.ToPlatform(), x, y);
+				await plaformView.AssertColorAtPointAsync(color.ToPlatform(), x, y, MauiContext);
+#endif
+			});
+		}
+
+		protected Task AssertColorsAtPoints(IView view, Type handlerType, Color[] colors, Point[] points)
+		{
+			return InvokeOnMainThreadAsync(async () =>
+			{
+				var plaformView = CreateHandler(view, handlerType).ToPlatform();
+				await plaformView.AssertColorsAtPointsAsync(colors, points, MauiContext);
+			});
+		}
+
+		protected Task<ImageAnalysis.RawBitmap> GetRawBitmap(Controls.VisualElement view, Type handlerType)
+		{
+			return InvokeOnMainThreadAsync<RawBitmap>(async () =>
+			{
+				var platformView = CreateHandler(view, handlerType).ToPlatform();
+#if WINDOWS
+				return await platformView.AttachAndRun<RawBitmap>(async (window) => await view.AsRawBitmapAsync(), MauiContext);
+#else
+				return await platformView.AttachAndRun<RawBitmap>(async () => await view.AsRawBitmapAsync());
 #endif
 			});
 		}

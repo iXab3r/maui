@@ -16,6 +16,11 @@ namespace Microsoft.Maui.Controls.Hosting
 {
 	public static partial class AppHostBuilderExtensions
 	{
+		/// <summary>
+		/// Configures <see cref="MauiAppBuilder"/> to add support for the <see cref="Map"/> control.
+		/// </summary>
+		/// <param name="builder">The <see cref="MauiAppBuilder"/> to configure.</param>
+		/// <returns>The configured <see cref="MauiAppBuilder"/>.</returns>
 		public static MauiAppBuilder UseMauiMaps(this MauiAppBuilder builder)
 		{
 			builder
@@ -58,7 +63,12 @@ namespace Microsoft.Maui.Controls.Hosting
 			handlersCollection.AddHandler<Pin, MapPinHandler>();
 			handlersCollection.AddHandler<MapElement, MapElementHandler>();
 #endif
+
+#if WINDOWS
+			throw new NotImplementedException(".NET MAUI Maps is currently not implemented for Windows. For more information, please see: https://aka.ms/maui-maps-no-windows");
+#else
 			return handlersCollection;
+#endif
 		}
 	}
 }

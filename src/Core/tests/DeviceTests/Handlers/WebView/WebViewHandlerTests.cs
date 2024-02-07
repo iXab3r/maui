@@ -30,7 +30,7 @@ namespace Microsoft.Maui.DeviceTests
 		}
 
 		[Fact("WebBrowser autoplays HTML5 Video"
-#if ANDROID || IOS || MACCATALYST
+#if ANDROID || IOS || MACCATALYST || WINDOWS
 			, Skip = "Capturing a screenshot/image of a WebView does not also capture the video canvas contents required for this test."
 #endif
 			)]
@@ -54,7 +54,7 @@ namespace Microsoft.Maui.DeviceTests
 				Exception lastException = null;
 
 				// Setup the view to be displayed/parented and run our tests on it
-				await platformView.AttachAndRun(async () =>
+				await AttachAndRun(webView, async (handler) =>
 				{
 					// Wait for the page to load
 					var tcsLoaded = new TaskCompletionSource<bool>();

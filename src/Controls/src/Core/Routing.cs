@@ -11,8 +11,8 @@ namespace Microsoft.Maui.Controls
 	public static class Routing
 	{
 		static int s_routeCount = 0;
-		static Dictionary<string, RouteFactory> s_routes = new Dictionary<string, RouteFactory>();
-		static Dictionary<string, Page> s_implicitPageRoutes = new Dictionary<string, Page>();
+		static Dictionary<string, RouteFactory> s_routes = new(StringComparer.Ordinal);
+		static Dictionary<string, Page> s_implicitPageRoutes = new(StringComparer.Ordinal);
 		static HashSet<string> s_routeKeys;
 
 		const string ImplicitPrefix = "IMPL_";
@@ -118,9 +118,16 @@ namespace Microsoft.Maui.Controls
 			s_routeKeys = null;
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/Routing.xml" path="//Member[@MemberName='RouteProperty']/Docs/*" />
-		public static readonly BindableProperty RouteProperty =
-			BindableProperty.CreateAttached("Route", typeof(string), typeof(Routing), null,
+		/// <summary>Bindable property for attached property <c>Route</c>.</summary>
+		public static readonly BindableProperty RouteProperty = CreateRouteProperty();
+
+		[UnconditionalSuppressMessage("ReflectionAnalysis", "IL2111:ReflectionToDynamicallyAccessedMembers",
+			Justification = "The CreateAttached method has a DynamicallyAccessedMembers annotation for all public methods"
+			+ "on the declaring type. This includes the Routing.RegisterRoute(string, Type) method which also has a "
+			+ "DynamicallyAccessedMembers annotation and the trimmer can't guarantee the availability of the requirements"
+			+ "of the method. `BindableProperty` only needs methods starting with `Get`, so `RegisterRoute` is never accessed via reflection.")]
+		private static BindableProperty CreateRouteProperty()
+			=> BindableProperty.CreateAttached("Route", typeof(string), typeof(Routing), null,
 				defaultValueCreator: CreateDefaultRoute);
 
 		static object CreateDefaultRoute(BindableObject bindable)

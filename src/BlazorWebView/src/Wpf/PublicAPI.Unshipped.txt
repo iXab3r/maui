@@ -10,3 +10,4 @@ Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEvent
 Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.Handled.set -> void
 Microsoft.AspNetCore.Components.WebView.Wpf.WpfDispatcherUnhandlerExceptionEventArgs.WpfDispatcherUnhandlerExceptionEventArgs(System.Windows.Threading.Dispatcher! dispatcher, System.Exception! exception) -> void
 static readonly Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebView.StartPathProperty -> System.Windows.DependencyProperty!
+virtual Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebView.TryDispatchAsync(System.Action<System.IServiceProvider!>! workItem) -> System.Threading.Tasks.Task<bool>!

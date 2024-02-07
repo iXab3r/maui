@@ -11,9 +11,9 @@
 //using Android.Runtime;
 //using Android.Views;
 //using Android.Widget;
-//using Microsoft.Maui.Controls.Compatibility.ControlGallery.Issues;
+//using Microsoft.Maui.Controls.ControlGallery.Issues;
 
-//namespace Microsoft.Maui.Controls.Compatibility.ControlGallery.Android
+//namespace Microsoft.Maui.Controls.ControlGallery.Android
 //{
 //	[Activity(Label = "Issue10182Activity", Icon = "@drawable/icon", Theme = "@style/MyTheme",
 //		MainLauncher = false, HardwareAccelerated = true,
@@ -30,7 +30,7 @@
 //			base.OnCreate(savedInstanceState);
 
 //#pragma warning disable CS0612 // Type or member is obsolete
-//			Forms.Init(new MauiContext(MauiApplication.Current.Services, this));
+//			Forms.Init(new MauiContext(IPlatformApplication.Current.Services, this));
 //#pragma warning restore CS0612 // Type or member is obsolete
 //			LoadApplication(new Issue10182Application());
 

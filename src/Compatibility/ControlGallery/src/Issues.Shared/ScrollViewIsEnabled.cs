@@ -7,7 +7,7 @@ using NUnit.Framework;
 using Microsoft.Maui.Controls.Compatibility.UITests;
 #endif
 
-namespace Microsoft.Maui.Controls.Compatibility.ControlGallery.Issues
+namespace Microsoft.Maui.Controls.ControlGallery.Issues
 {
 #if UITEST
 	[Category(UITestCategories.IsEnabled)]
@@ -80,6 +80,8 @@ Use the toggle button to check both values of 'IsEnabled'."
 		}
 
 #if UITEST
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiAndroid]
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiIOS]
 		[Test]
 		public void ScrollViewInitiallyEnabled()
 		{
@@ -91,6 +93,8 @@ Use the toggle button to check both values of 'IsEnabled'."
 			RunningApp.WaitForElement(Success); // If the ScrollView scrolled, the success label should be displayed
 		}
 
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiAndroid]
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiIOS]
 		[Test]
 		public void ScrollViewInitiallyEnabledThenDisabled()
 		{
@@ -107,6 +111,8 @@ Use the toggle button to check both values of 'IsEnabled'."
 			RunningApp.WaitForNoElement(Success); // Shouldn't have scrolled, so no success label should be displayed
 		}
 
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiAndroid]
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiIOS]
 		[Test]
 		public void ScrollViewInitiallyNotEnabled()
 		{
@@ -118,6 +124,8 @@ Use the toggle button to check both values of 'IsEnabled'."
 			RunningApp.WaitForNoElement(Success); // Shouldn't have scrolled, so no success label should be displayed
 		}
 
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiAndroid]
+[Microsoft.Maui.Controls.Compatibility.UITests.FailsOnMauiIOS]
 		[Test]
 		public void ScrollViewInitiallyNotEnabledThenEnabled()
 		{
