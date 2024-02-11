@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			get => (EventHandler<BlazorWebViewInitializedEventArgs>)GetValue(BlazorWebViewInitializedProperty);
 			set => SetValue(BlazorWebViewInitializedProperty, value);
 		}
-		
+
 		/// <summary>
 		/// 
 		/// </summary>

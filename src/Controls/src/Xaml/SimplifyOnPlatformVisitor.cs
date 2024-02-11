@@ -11,8 +11,11 @@ namespace Microsoft.Maui.Controls.Xaml
 		{
 
 			if (string.IsNullOrEmpty(targetFramework))
+			{
 				return;
 
+/* Unmerged change from project 'Controls.Xaml(net8.0)'
+Before:
 			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
 				Target = nameof(OnPlatformExtension.Android);
 			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
@@ -21,6 +24,118 @@ namespace Microsoft.Maui.Controls.Xaml
 				Target = nameof(OnPlatformExtension.macOS);
 			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
 				Target = nameof(OnPlatformExtension.MacCatalyst);
+After:
+			}
+
+			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.Android);
+			}
+
+			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.iOS);
+			}
+
+			if (targetFramework.IndexOf("-macos", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.macOS);
+			}
+
+			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.MacCatalyst);
+			}
+*/
+
+/* Unmerged change from project 'Controls.Xaml(net8.0-android)'
+Before:
+			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.Android);
+			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.iOS);
+			if (targetFramework.IndexOf("-macos", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.macOS);
+			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.MacCatalyst);
+After:
+			}
+
+			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.Android);
+			}
+
+			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.iOS);
+			}
+
+			if (targetFramework.IndexOf("-macos", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.macOS);
+			}
+
+			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.MacCatalyst);
+			}
+*/
+
+/* Unmerged change from project 'Controls.Xaml(net8.0-windows10.0.19041)'
+Before:
+			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.Android);
+			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.iOS);
+			if (targetFramework.IndexOf("-macos", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.macOS);
+			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
+				Target = nameof(OnPlatformExtension.MacCatalyst);
+After:
+			}
+
+			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.Android);
+			}
+
+			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.iOS);
+			}
+
+			if (targetFramework.IndexOf("-macos", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.macOS);
+			}
+
+			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.MacCatalyst);
+			}
+*/
+			}
+
+			if (targetFramework.IndexOf("-android", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.Android);
+			}
+
+			if (targetFramework.IndexOf("-ios", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.iOS);
+			}
+
+			if (targetFramework.IndexOf("-macos", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.macOS);
+			}
+
+			if (targetFramework.IndexOf("-maccatalyst", StringComparison.OrdinalIgnoreCase) != -1)
+			{
+				Target = nameof(OnPlatformExtension.MacCatalyst);
+			}
 		}
 
 		public string Target { get; }
@@ -44,7 +159,9 @@ namespace Microsoft.Maui.Controls.Xaml
 		public void Visit(ElementNode node, INode parentNode)
 		{
 			if (Target is null)
+			{
 				return;
+			}
 
 			//`{OnPlatform}` markup extension
 			if (node.XmlType.Name == nameof(OnPlatformExtension) && node.XmlType.NamespaceUri == XamlParser.MauiUri)
@@ -53,25 +170,39 @@ namespace Microsoft.Maui.Controls.Xaml
 					|| node.Properties.TryGetValue(new XmlName("", nameof(OnPlatformExtension.Default)), out targetNode))
 				{
 					if (!ApplyPropertiesVisitor.TryGetPropertyName(node, parentNode, out XmlName name))
+					{
 						return;
+					}
+
 					if (parentNode is IElementNode parentEnode)
+					{
 						parentEnode.Properties[name] = targetNode;
+					}
 				}
 				else if (node.CollectionItems.Count > 0) // syntax like {OnPlatform foo, iOS=bar}
 				{
 					if (!ApplyPropertiesVisitor.TryGetPropertyName(node, parentNode, out XmlName name))
+					{
 						return;
+					}
+
 					if (parentNode is IElementNode parentEnode)
+					{
 						parentEnode.Properties[name] = node.CollectionItems[0];
+					}
 				}
 				else //no prop for target and no Default set
 				{
 					if (!ApplyPropertiesVisitor.TryGetPropertyName(node, parentNode, out XmlName name))
+					{
 						return;
+					}
 					//if there's no value for the targetPlatform, ignore the node.
 					//this is slightly different than what OnPlatform does (return default(T))
 					if (parentNode is IElementNode parentEnode)
+					{
 						parentEnode.Properties.Remove(name);
+					}
 				}
 			}
 

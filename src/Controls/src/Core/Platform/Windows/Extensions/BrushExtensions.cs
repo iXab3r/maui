@@ -14,8 +14,10 @@ namespace Microsoft.Maui.Controls.Platform
 		public static WBrush ToBrush(this Brush brush)
 		{
 			if (brush == null)
-				return null;
-
+			{
+			
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
 			if (brush is SolidColorBrush solidColorBrush)
 			{
 				if (solidColorBrush.Color == null)
@@ -25,14 +27,72 @@ namespace Microsoft.Maui.Controls.Platform
 
 				return solidColorBrush.Color.ToPlatform();
 			}
+After:
+			}
+*/
 
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
 			if (brush is LinearGradientBrush linearGradientBrush)
-			{
+After:
+			if (brush is SolidColorBrush solidColorBrush)
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
 				var orderedStops = linearGradientBrush.GradientStops.OrderBy(x => x.Offset).ToList();
 				var gradientStopCollection = new WGradientStopCollection();
 
 				foreach (var item in orderedStops)
 					gradientStopCollection.Add(new WGradientStop { Offset = item.Offset, Color = item.Color.ToWindowsColor() });
+
+				var p1 = linearGradientBrush.StartPoint;
+				var p2 = linearGradientBrush.EndPoint;
+
+				return new WLinearGradientBrush(gradientStopCollection, 0)
+				{
+					StartPoint = new WPoint(p1.X, p1.Y),
+					EndPoint = new WPoint(p2.X, p2.Y)
+				};
+After:
+				if (solidColorBrush.Color == null)
+				{
+					return null;
+				}
+
+				return solidColorBrush.Color.ToPlatform();
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+			if (brush is RadialGradientBrush radialGradientBrush)
+After:
+			if (brush is LinearGradientBrush linearGradientBrush)
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+				var wRadialGradientBrush = new WRadialGradientBrush()
+				{
+					GradientOrigin = new WPoint(radialGradientBrush.Center.X, radialGradientBrush.Center.Y),
+					Center = new WPoint(radialGradientBrush.Center.X, radialGradientBrush.Center.Y),
+					RadiusX = radialGradientBrush.Radius,
+					RadiusY = radialGradientBrush.Radius
+				};
+
+				var orderedStops = radialGradientBrush.GradientStops.OrderBy(x => x.Offset).ToList();
+
+				foreach (var gradientStop in orderedStops)
+					wRadialGradientBrush.GradientStops.Add(
+						new WGradientStop { Color = gradientStop.Color.ToWindowsColor(), Offset = gradientStop.Offset });
+After:
+				var orderedStops = linearGradientBrush.GradientStops.OrderBy(x => x.Offset).ToList();
+				var gradientStopCollection = new WGradientStopCollection();
+
+				foreach (var item in orderedStops)
+				{
+					gradientStopCollection.Add(new WGradientStop { Offset = item.Offset, Color = item.Color.ToWindowsColor() });
+				}
 
 				var p1 = linearGradientBrush.StartPoint;
 				var p2 = linearGradientBrush.EndPoint;
@@ -57,8 +117,62 @@ namespace Microsoft.Maui.Controls.Platform
 				var orderedStops = radialGradientBrush.GradientStops.OrderBy(x => x.Offset).ToList();
 
 				foreach (var gradientStop in orderedStops)
+				{
 					wRadialGradientBrush.GradientStops.Add(
 						new WGradientStop { Color = gradientStop.Color.ToWindowsColor(), Offset = gradientStop.Offset });
+				}
+*/
+{
+				return null;
+			}
+
+			if (brush is SolidColorBrush solidColorBrush)
+			{
+				if (solidColorBrush.Color == null)
+				{
+					return null;
+				}
+
+				return solidColorBrush.Color.ToPlatform();
+			}
+
+			if (brush is LinearGradientBrush linearGradientBrush)
+			{
+				var orderedStops = linearGradientBrush.GradientStops.OrderBy(x => x.Offset).ToList();
+				var gradientStopCollection = new WGradientStopCollection();
+
+				foreach (var item in orderedStops)
+				{
+					gradientStopCollection.Add(new WGradientStop { Offset = item.Offset, Color = item.Color.ToWindowsColor() });
+				}
+
+				var p1 = linearGradientBrush.StartPoint;
+				var p2 = linearGradientBrush.EndPoint;
+
+				return new WLinearGradientBrush(gradientStopCollection, 0)
+				{
+					StartPoint = new WPoint(p1.X, p1.Y),
+					EndPoint = new WPoint(p2.X, p2.Y)
+				};
+			}
+
+			if (brush is RadialGradientBrush radialGradientBrush)
+			{
+				var wRadialGradientBrush = new WRadialGradientBrush()
+				{
+					GradientOrigin = new WPoint(radialGradientBrush.Center.X, radialGradientBrush.Center.Y),
+					Center = new WPoint(radialGradientBrush.Center.X, radialGradientBrush.Center.Y),
+					RadiusX = radialGradientBrush.Radius,
+					RadiusY = radialGradientBrush.Radius
+				};
+
+				var orderedStops = radialGradientBrush.GradientStops.OrderBy(x => x.Offset).ToList();
+
+				foreach (var gradientStop in orderedStops)
+				{
+					wRadialGradientBrush.GradientStops.Add(
+						new WGradientStop { Color = gradientStop.Color.ToWindowsColor(), Offset = gradientStop.Offset });
+				}
 
 				return wRadialGradientBrush;
 			}

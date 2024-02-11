@@ -41,18 +41,200 @@ namespace Microsoft.Maui.Controls.Shapes
 				{
 					var parts = strValue.Split(Delimiter, 2);
 					if (parts.Length != 2)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 						return new Line();
 
 					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
 					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
 
 					if (points == null || points.Count == 0)
+After:
+					{
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
 						return new Line();
 
+					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
+					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
+
+					if (points == null || points.Count == 0)
+After:
+					{
+*/
+					
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 					Point p1 = points[0];
 
 					if (points.Count == 1)
 						return new Line { X1 = p1.X, Y1 = p1.Y };
+
+					Point p2 = points[1];
+After:
+					}
+
+					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
+					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+					Point p1 = points[0];
+
+					if (points.Count == 1)
+						return new Line { X1 = p1.X, Y1 = p1.Y };
+
+					Point p2 = points[1];
+After:
+					}
+
+					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
+					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
+*/
+{
+						if (points == null || points.Count == 0)
+					{
+						return new Line();
+					}
+
+					Point p1 = points[0];
+
+					if (points.Count == 1)
+					{
+						return new Line { X1 = p1.X, Y1 = p1.Y };
+					}
+
+					Point p2 = points[1];
+
+					return new Line();
+				
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+						return new Path();
+After:
+					{
+						return new Path();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+						return new Path();
+After:
+					{
+						return new Path();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+						return new Path();
+After:
+					{
+						return new Path();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+						return new Path();
+After:
+					{
+						return new Path();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+						return new Polygon();
+After:
+					{
+						return new Polygon();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+						return new Polygon();
+After:
+					{
+						return new Polygon();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+						return new Polygon();
+After:
+					{
+						return new Polygon();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+						return new Polygon();
+After:
+					{
+						return new Polygon();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+						return new Polyline();
+After:
+					{
+						return new Polyline();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+						return new Polyline();
+After:
+					{
+						return new Polyline();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+						return new Polyline();
+After:
+					{
+						return new Polyline();
+					}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+						return new Polyline();
+After:
+					{
+						return new Polyline();
+					}
+*/
+	}
+
+					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
+					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
+
+					if (points == null || points.Count == 0)
+					{
+						return new Line();
+					}
+
+					Point p1 = points[0];
+
+					if (points.Count == 1)
+					{
+						return new Line { X1 = p1.X, Y1 = p1.Y };
+					}
 
 					Point p2 = points[1];
 
@@ -63,13 +245,17 @@ namespace Microsoft.Maui.Controls.Shapes
 				{
 					var parts = strValue.Split(Delimiter, 2);
 					if (parts.Length != 2)
+					{
 						return new Path();
+					}
 
 					PathGeometryConverter pathGeometryConverter = new PathGeometryConverter();
 					Geometry pathGeometry = pathGeometryConverter.ConvertFromInvariantString(parts[1]) as Geometry;
 
 					if (pathGeometry == null)
+					{
 						return new Path();
+					}
 
 					return new Path { Data = pathGeometry };
 				}
@@ -78,13 +264,17 @@ namespace Microsoft.Maui.Controls.Shapes
 				{
 					var parts = strValue.Split(Delimiter, 2);
 					if (parts.Length != 2)
+					{
 						return new Polygon();
+					}
 
 					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
 					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
 
 					if (points == null || points.Count == 0)
+					{
 						return new Polygon();
+					}
 
 					return new Polygon { Points = points };
 				}
@@ -93,13 +283,17 @@ namespace Microsoft.Maui.Controls.Shapes
 				{
 					var parts = strValue.Split(Delimiter, 2);
 					if (parts.Length != 2)
+					{
 						return new Polyline();
+					}
 
 					PointCollectionConverter pointCollectionConverter = new PointCollectionConverter();
 					PointCollection points = pointCollectionConverter.ConvertFromString(parts[1]) as PointCollection;
 
 					if (points == null || points.Count == 0)
+					{
 						return new Polyline();
+					}
 
 					return new Polyline { Points = points };
 				}

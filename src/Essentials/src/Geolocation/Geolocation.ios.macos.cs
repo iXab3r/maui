@@ -21,7 +21,9 @@ namespace Microsoft.Maui.Devices.Sensors
 		public async Task<Location?> GetLastKnownLocationAsync()
 		{
 			if (!CLLocationManager.LocationServicesEnabled)
+			{
 				throw new FeatureNotEnabledException("Location services are not enabled on device.");
+			}
 
 			await Permissions.EnsureGrantedAsync<Permissions.LocationWhenInUse>();
 
@@ -43,13 +45,149 @@ namespace Microsoft.Maui.Devices.Sensors
 			ArgumentNullException.ThrowIfNull(request);
 
 			if (!CLLocationManager.LocationServicesEnabled)
+			{
 				throw new FeatureNotEnabledException("Location services are not enabled on device.");
+			}
 
 			await Permissions.EnsureGrantedAsync<Permissions.LocationWhenInUse>();
 
 			// the location manager requires an active run loop
 			// so just use the main loop
-			var manager = MainThread.InvokeOnMainThread(() => new CLLocationManager());
+			var manager = 
+/* Unmerged change from project 'Essentials(net8.0-maccatalyst)'
+Before:
+			manager.StartUpdatingLocation();
+
+			var reducedAccuracy = false;
+#if __IOS__
+			if (OperatingSystem.IsIOSVersionAtLeast(14, 0))
+			{
+				if (request.RequestFullAccuracy && manager.AccuracyAuthorization == CLAccuracyAuthorization.ReducedAccuracy)
+				{
+					await manager.RequestTemporaryFullAccuracyAuthorizationAsync("TemporaryFullAccuracyUsageDescription");
+				}
+
+				reducedAccuracy = manager.AccuracyAuthorization == CLAccuracyAuthorization.ReducedAccuracy;
+			}
+#endif
+
+			var clLocation = await tcs.Task;
+
+			return clLocation?.ToLocation(reducedAccuracy);
+
+			void HandleLocation(CLLocation location)
+			{
+				manager.StopUpdatingLocation();
+				tcs.TrySetResult(location);
+After:
+			manager.LocationHandler += HandleLocation;
+
+			cancellationToken = Utils.TimeoutToken(cancellationToken, request.Timeout);
+			cancellationToken.TrySetResult(location);
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
+			manager.StartUpdatingLocation();
+
+			var reducedAccuracy = false;
+#if __IOS__
+			if (OperatingSystem.IsIOSVersionAtLeast(14, 0))
+			{
+				if (request.RequestFullAccuracy && manager.AccuracyAuthorization == CLAccuracyAuthorization.ReducedAccuracy)
+				{
+					await manager.RequestTemporaryFullAccuracyAuthorizationAsync("TemporaryFullAccuracyUsageDescription");
+				}
+
+				reducedAccuracy = manager.AccuracyAuthorization == CLAccuracyAuthorization.ReducedAccuracy;
+			}
+#endif
+
+			var clLocation = await tcs.Task;
+
+			return clLocation?.ToLocation(reducedAccuracy);
+
+			void HandleLocation(CLLocation location)
+			{
+				manager.StopUpdatingLocation();
+				tcs.TrySetResult(location);
+			}
+
+			void Cancel()
+After:
+			manager.LocationHandler += HandleLocation;
+
+			cancellationToken = Utils.TimeoutToken(cancellationToken, request.Timeout);
+			cancellationToken.TrySetResult(Cancel);
+
+			manager.DesiredAccuracy = request.PlatformDesiredAccuracy;
+			manager.Delegate = listener;
+
+#if __IOS__
+			// we're only listening for a single update
+#pragma warning disable CA1416 // https://github.com/xamarin/xamarin-macios/issues/14619
+			manager.PausesLocationUpdatesAutomatically = false;
+#pragma warning restore CA1416
+#endif
+
+			manager.StartUpdatingLocation();
+
+			var reducedAccuracy = false;
+#if __IOS__
+			if ()
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+			manager.StartUpdatingLocation();
+
+			var reducedAccuracy = false;
+#if __IOS__
+			if (OperatingSystem.IsIOSVersionAtLeast(14, 0))
+			{
+				if (request.RequestFullAccuracy && manager.AccuracyAuthorization == CLAccuracyAuthorization.ReducedAccuracy)
+				{
+					await manager.RequestTemporaryFullAccuracyAuthorizationAsync("TemporaryFullAccuracyUsageDescription");
+				}
+
+				reducedAccuracy = manager.AccuracyAuthorization == CLAccuracyAuthorization.ReducedAccuracy;
+			}
+#endif
+
+			var clLocation = await tcs.Task;
+
+			return clLocation?.ToLocation(reducedAccuracy);
+
+			void HandleLocation(CLLocation location)
+			{
+				manager.StopUpdatingLocation();
+				tcs.TrySetResult(location);
+			}
+
+			void Cancel()
+After:
+			manager.LocationHandler += HandleLocation;
+
+			cancellationToken = Utils.TimeoutToken(cancellationToken, request.Timeout);
+			cancellationToken.TrySetResult(Cancel);
+
+			manager.DesiredAccuracy = request.PlatformDesiredAccuracy;
+			manager.Delegate = listener;
+
+#if __IOS__
+			// we're only listening for a single update
+#pragma warning disable CA1416 // https://github.com/xamarin/xamarin-macios/issues/14619
+			manager.PausesLocationUpdatesAutomatically = false;
+#pragma warning restore CA1416
+#endif
+
+			manager.StartUpdatingLocation();
+
+			var reducedAccuracy = false;
+#if __IOS__
+			if ()
+*/
+MainThread.InvokeOnMainThread(() => new CLLocationManager());
 
 			var tcs = new TaskCompletionSource<CLLocation?>(manager);
 
@@ -117,10 +255,14 @@ namespace Microsoft.Maui.Devices.Sensors
 			ArgumentNullException.ThrowIfNull(request);
 
 			if (IsListeningForeground)
+			{
 				throw new InvalidOperationException("Already listening to location changes.");
+			}
 
 			if (!CLLocationManager.LocationServicesEnabled)
+			{
 				throw new FeatureNotEnabledException("Location services are not enabled on device.");
+			}
 
 			await Permissions.EnsureGrantedAsync<Permissions.LocationWhenInUse>();
 
@@ -175,7 +317,9 @@ namespace Microsoft.Maui.Devices.Sensors
 		{
 			if (!IsListeningForeground ||
 				listeningManager is null)
+			{
 				return;
+			}
 
 			listeningManager.StopUpdatingLocation();
 
@@ -201,6 +345,9 @@ namespace Microsoft.Maui.Devices.Sensors
 		public override void LocationsUpdated(CLLocationManager manager, CLLocation[] locations)
 		{
 			if (wasRaised)
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
 				return;
 
 			wasRaised = true;
@@ -208,7 +355,62 @@ namespace Microsoft.Maui.Devices.Sensors
 			var location = locations?.LastOrDefault();
 
 			if (location == null)
+After:
+			{
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
 				return;
+
+			wasRaised = true;
+
+			var location = locations?.LastOrDefault();
+
+			if (location == null)
+After:
+			{
+*/
+			{
+				return;
+			}
+
+			wasRaised = true;
+
+			var location = locations?.LastOrDefault();
+
+			if (location == null)
+			{
+				return;
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Added:
+			}
+
+			wasRaised = true;
+
+			var location = locations?.LastOrDefault();
+
+			if (location == null)
+			{
+				return;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Added:
+			}
+
+			wasRaised = true;
+
+			var location = locations?.LastOrDefault();
+
+			if (location == null)
+			{
+				return;
+			}
+*/
+			}
 
 			LocationHandler?.Invoke(location);
 		}
@@ -229,7 +431,9 @@ namespace Microsoft.Maui.Devices.Sensors
 			var location = locations?.LastOrDefault();
 
 			if (location == null)
+			{
 				return;
+			}
 
 			LocationHandler?.Invoke(location);
 		}
@@ -238,7 +442,11 @@ namespace Microsoft.Maui.Devices.Sensors
 		public override void Failed(CLLocationManager manager, NSError error)
 		{
 			if ((CLError)error.Code == CLError.Network)
+			{
+			{
 				ErrorHandler?.Invoke(GeolocationError.PositionUnavailable);
+			}
+			}
 		}
 
 		/// <inheritdoc/>
@@ -246,7 +454,11 @@ namespace Microsoft.Maui.Devices.Sensors
 		{
 			if (status == CLAuthorizationStatus.Denied ||
 				status == CLAuthorizationStatus.Restricted)
+			{
+			{
 				ErrorHandler?.Invoke(GeolocationError.Unauthorized);
+			}
+			}
 		}
 
 		/// <inheritdoc/>

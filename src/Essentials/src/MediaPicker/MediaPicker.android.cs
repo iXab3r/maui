@@ -59,6 +59,9 @@ namespace Microsoft.Maui.Media
 		public async Task<FileResult> CaptureAsync(MediaPickerOptions options, bool photo)
 		{
 			if (!IsCaptureSupported)
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
 				throw new FeatureNotSupportedException();
 
 			await Permissions.EnsureGrantedAsync<Permissions.Camera>();
@@ -67,9 +70,47 @@ namespace Microsoft.Maui.Media
 				await Permissions.EnsureGrantedAsync<Permissions.StorageWrite>();
 
 			var captureIntent = new Intent(photo ? MediaStore.ActionImageCapture : MediaStore.ActionVideoCapture);
+After:
+			{
+				throw new FeatureNotSupportedException();
+			}
+
+			await Permissions.EnsureGrantedAsync<Permissions.Camera>();
+			// StorageWrite no longer exists starting from Android API 33
+*/
+			{
+				throw new FeatureNotSupportedException();
+			}
+
+			await Permissions.EnsureGrantedAsync<Permissions.Camera>();
+			// StorageWrite no longer exists starting from Android API 33
+			if (!OperatingSystem.IsAndroidVersionAtLeast(33))
+			{
+				await Permissions.EnsureGrantedAsync<Permissions.StorageWrite>();
+			}
+
+			var captureIntent = new Intent(photo ? MediaStore.ActionImageCapture : MediaStore.ActionVideoCapture);
+
+			if (!OperatingSystem.IsAndroidVersionAtLeast(33))
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+				throw new FeatureNotSupportedException($"Either there was no camera on the device or '{captureIntent.Action}' was not added to the <queries> element in the app's manifest file. See more: https://developer.android.com/about/versions/11/privacy/package-visibility");
+After:
+			{
+				await Permissions.EnsureGrantedAsync<Permissions.StorageWrite>();
+			}
+
+			var captureIntent = new Intent(photo ? MediaStore.ActionImageCapture : MediaStore.ActionVideoCapture);
 
 			if (!PlatformUtils.IsIntentSupported(captureIntent))
+			{
 				throw new FeatureNotSupportedException($"Either there was no camera on the device or '{captureIntent.Action}' was not added to the <queries> element in the app's manifest file. See more: https://developer.android.com/about/versions/11/privacy/package-visibility");
+			}
+*/
+			{
+				throw new FeatureNotSupportedException($"Either there was no camera on the device or '{captureIntent.Action}' was not added to the <queries> element in the app's manifest file. See more: https://developer.android.com/about/versions/11/privacy/package-visibility");
+			}
 
 			captureIntent.AddFlags(ActivityFlags.GrantReadUriPermission);
 			captureIntent.AddFlags(ActivityFlags.GrantWriteUriPermission);
@@ -81,10 +122,14 @@ namespace Microsoft.Maui.Media
 				string captureResult = null;
 
 				if (photo)
+				{
 					captureResult = await CapturePhotoAsync(captureIntent);
+				}
 				else
+				{
 					captureResult = await CaptureVideoAsync(captureIntent);
-				
+				}
+
 				// Return the file that we just captured
 				return new FileResult(captureResult);
 			}

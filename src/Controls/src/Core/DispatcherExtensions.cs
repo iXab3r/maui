@@ -16,6 +16,9 @@ namespace Microsoft.Maui.Controls
 				bindableObject is Element element &&
 				element.FindMauiContext() is IMauiContext context &&
 				context.Services.GetService<IDispatcher>() is IDispatcher handlerDispatcher)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return handlerDispatcher;
 
 			// maybe this thread has a dispatcher
@@ -32,9 +35,94 @@ namespace Microsoft.Maui.Controls
 			// We don't include Application because Application.Dispatcher will call
 			// `FindDispatcher` if it's _dispatcher property isn't initialized so this
 			// could cause a Stack Overflow Exception
+After:
+			{
+				return handlerDispatcher;
+			}
+
+			// maybe this thread has a dispatcher
+			if (Dispatcher.GetForCurrentThread() is IDispatcher globalDispatcher)
+			{
+				return globalDispatcher;
+			}
+
+			// If BO is of type Application then check for its Dispatcher
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return handlerDispatcher;
+
+			// maybe this thread has a dispatcher
+			if (Dispatcher.GetForCurrentThread() is IDispatcher globalDispatcher)
+				return globalDispatcher;
+
+			// If BO is of type Application then check for its Dispatcher
+			if (bindableObject is Application app &&
+				app.FindMauiContext() is IMauiContext appMauiContext &&
+				appMauiContext.Services.GetService<IDispatcher>() is IDispatcher appHandlerDispatcher)
+				return appHandlerDispatcher;
+
+			// try looking on the static app
+			// We don't include Application because Application.Dispatcher will call
+			// `FindDispatcher` if it's _dispatcher property isn't initialized so this
+			// could cause a Stack Overflow Exception
+After:
+			{
+				return handlerDispatcher;
+			}
+
+			// maybe this thread has a dispatcher
+			if (Dispatcher.GetForCurrentThread() is IDispatcher globalDispatcher)
+			{
+				return globalDispatcher;
+			}
+
+			// If BO is of type Application then check for its Dispatcher
+*/
+			{
+				return handlerDispatcher;
+			}
+
+			// maybe this thread has a dispatcher
+			if (Dispatcher.GetForCurrentThread() is IDispatcher globalDispatcher)
+			{
+				return globalDispatcher;
+			}
+
+			// If BO is of type Application then check for its Dispatcher
+			if (bindableObject is Application app &&
+				app.FindMauiContext() is IMauiContext appMauiContext &&
+				appMauiContext.Services.GetService<IDispatcher>() is IDispatcher appHandlerDispatcher)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+				return appDispatcher;
+After:
+			{
+				return appHandlerDispatcher;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return appDispatcher;
+After:
+			{
+				return appHandlerDispatcher;
+*/
+			{
+				return appHandlerDispatcher;
+			}
+
+			// try looking on the static app
+			// We don't include Application because Application.Dispatcher will call
+			// `FindDispatcher` if it's _dispatcher property isn't initialized so this
+			// could cause a Stack Overflow Exception
 			if (bindableObject is not Application &&
 				Application.Current?.Dispatcher is IDispatcher appDispatcher)
+			{
 				return appDispatcher;
+			}
 
 			// no dispatchers found at all
 			throw new InvalidOperationException("BindableObject was not instantiated on a thread with a dispatcher nor does the current application have a dispatcher.");
@@ -83,6 +171,9 @@ namespace Microsoft.Maui.Controls
 		static IDispatcher EnsureDispatcher(IDispatcher? dispatcher)
 		{
 			if (dispatcher is not null)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return dispatcher;
 
 			// maybe this thread has a dispatcher
@@ -90,8 +181,61 @@ namespace Microsoft.Maui.Controls
 				return globalDispatcher;
 
 			// try looking on the app
-			if (Application.Current?.Dispatcher is IDispatcher appDispatcher)
+After:
+			{
+				return dispatcher;
+			}
+
+			// maybe this thread has a dispatcher
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return dispatcher;
+
+			// maybe this thread has a dispatcher
+			if (Dispatcher.GetForCurrentThread() is IDispatcher globalDispatcher)
+				return globalDispatcher;
+
+			// try looking on the app
+After:
+			{
+				return dispatcher;
+			}
+
+			// maybe this thread has a dispatcher
+*/
+			{
+				return dispatcher;
+			}
+
+			// maybe this thread has a dispatcher
+			if (Dispatcher.GetForCurrentThread() is IDispatcher globalDispatcher)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return appDispatcher;
+After:
+			{
+				return globalDispatcher;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return appDispatcher;
+After:
+			{
+				return globalDispatcher;
+*/
+			{
+				return globalDispatcher;
+			}
+
+			// try looking on the app
+			if (Application.Current?.Dispatcher is IDispatcher appDispatcher)
+			{
+				return appDispatcher;
+			}
 
 			// no dispatchers found at all
 			throw new InvalidOperationException("The dispatcher was not found and the current application does not have a dispatcher.");

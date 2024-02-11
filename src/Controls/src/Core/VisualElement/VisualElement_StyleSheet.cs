@@ -13,6 +13,9 @@ namespace Microsoft.Maui.Controls
 		BindableProperty IStylable.GetProperty(string key, bool inheriting)
 		{
 			if (!Internals.Registrar.StyleProperties.TryGetValue(key, out var attrList))
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return null;
 
 			StylePropertyAttribute styleAttribute = null;
@@ -30,6 +33,31 @@ namespace Microsoft.Maui.Controls
 			//do not inherit non-inherited properties
 			if (inheriting && !styleAttribute.Inherited)
 				return null;
+After:
+			{
+				return null;
+			}
+
+			StylePropertyAttribute styleAttribute = null;
+			for (int i = 0; i < attrList.Count; i++)
+			{
+				styleAttribute = attrList[i];
+				if (styleAttribute.TargetType.IsAssignableFrom(GetType()))
+				{
+					break;
+				}
+
+				styleAttribute = null;
+			}
+*/
+			{
+				return null;
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+			//do not inherit non-inherited properties
+			if (inheriting && !styleAttribute.Inherited)
+				return null;
 
 			if (styleAttribute.BindableProperty != null)
 				return styleAttribute.BindableProperty;
@@ -40,8 +68,86 @@ namespace Microsoft.Maui.Controls
 															| BindingFlags.NonPublic
 															| BindingFlags.Static
 															| BindingFlags.FlattenHierarchy);
-			if (bpField == null)
+After:
+			}
+
+			StylePropertyAttribute styleAttribute = null;
+			for (int i = 0; i < attrList.Count; i++)
+			{
+				styleAttribute = attrList[i];
+				if (styleAttribute.TargetType.IsAssignableFrom(GetType()))
+				{
+					break;
+				}
+
+				styleAttribute = null;
+			}
+
+			if (styleAttribute == null)
+			{
 				return null;
+			}
+
+			//do not inherit non-inherited properties
+			if (inheriting && !styleAttribute.Inherited)
+			{
+				return null;
+			}
+
+			if (styleAttribute.BindableProperty != null)
+			{
+				return styleAttribute.BindableProperty;
+			}
+
+			var propertyOwnerType = styleAttribute.PropertyOwnerType ?? GetType();
+*/
+			}
+
+			StylePropertyAttribute styleAttribute = null;
+			for (int i = 0; i < attrList.Count; i++)
+			{
+				styleAttribute = attrList[i];
+				if (styleAttribute.TargetType.IsAssignableFrom(GetType()))
+				{
+					break;
+				}
+
+				styleAttribute = null;
+			}
+
+			if (styleAttribute == null)
+			{
+				return null;
+			}
+
+			//do not inherit non-inherited properties
+			if (inheriting && !styleAttribute.Inherited)
+			{
+				return null;
+			}
+
+			var bpField = propertyOwnerType.GetField(styleAttribute.BindablePropertyName,
+															  BindingFlags.Public
+															| BindingFlags.NonPublic
+															| BindingFlags.Static
+															| BindingFlags.FlattenHierarchy);
+			if (styleAttribute.BindableProperty != null)
+			{
+				return styleAttribute.BindableProperty;
+			}
+
+			var propertyOwnerType = styleAttribute.PropertyOwnerType ?? GetType();
+			var bpField = propertyOwnerType.GetField(styleAttribute.BindablePropertyName,
+															  BindingFlags.Public
+															| BindingFlags.NonPublic
+															| BindingFlags.Static
+															| BindingFlags.FlattenHierarchy);
+			if (bpField == null)
+			{
+			{
+				return null;
+			}
+			}
 
 			return (styleAttribute.BindableProperty = bpField.GetValue(null) as BindableProperty);
 		}

@@ -26,17 +26,25 @@ namespace Microsoft.Maui.Devices.Sensors
 			added.Next = null;
 
 			if (newest != null)
+			{
 				newest.Next = added;
+			}
 
 			newest = added;
 
 			if (oldest == null)
+			{
 				oldest = added;
+			}
 
 			sampleCount++;
 
 			if (accelerating)
+			{
 				acceleratingCount++;
+
+/* Unmerged change from project 'Essentials(net8.0)'
+Before:
 		}
 
 		internal void Clear()
@@ -67,6 +75,638 @@ namespace Microsoft.Maui.Devices.Sensors
 
 				if (oldest == null)
 					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net8.0-android)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net8.0-windows10.0.19041)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-windows10.0.19041)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-windows10.0.20348)'
+Before:
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+					acceleratingCount--;
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+					newest = null;
+After:
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
+*/
+			}
+		}
+
+		internal void Clear()
+		{
+			while (oldest != null)
+			{
+				var removed = oldest;
+				oldest = removed.Next;
+				pool.Release(removed);
+			}
+			newest = null;
+			sampleCount = 0;
+			acceleratingCount = 0;
+		}
+
+		void Purge(long cutoff)
+		{
+			while (sampleCount >= minQueueSize &&
+				   oldest != null &&
+				   cutoff - oldest.Timestamp > 0)
+			{
+				var removed = oldest;
+				if (removed.IsAccelerating)
+				{
+					acceleratingCount--;
+				}
+
+				sampleCount--;
+				oldest = removed.Next;
+
+				if (oldest == null)
+				{
+					newest = null;
+				}
 
 				pool.Release(removed);
 			}
@@ -95,9 +735,13 @@ namespace Microsoft.Maui.Devices.Sensors
 			{
 				var aquired = head;
 				if (aquired == null)
+				{
 					aquired = new AccelerometerSample();
+				}
 				else
+				{
 					head = aquired.Next;
+				}
 
 				return aquired;
 			}

@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 
 		public override bool CheckAccess()
 			=> _windowsDispatcher.CheckAccess();
-		
+
 		public override async Task InvokeAsync(Action workItem)
 		{
 			try
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 			}
 			catch (Exception ex)
 			{
-				 HandleException(ex);
+				HandleException(ex);
 			}
 		}
 

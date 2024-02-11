@@ -78,7 +78,9 @@ namespace Microsoft.Maui.Controls
 		public void ClearValue(BindableProperty property)
 		{
 			if (property == null)
+			{
 				throw new ArgumentNullException(nameof(property));
+			}
 
 			if (property.IsReadOnly)
 			{
@@ -92,7 +94,9 @@ namespace Microsoft.Maui.Controls
 		internal void ClearValue(BindableProperty property, SetterSpecificity specificity)
 		{
 			if (property == null)
+			{
 				throw new ArgumentNullException(nameof(property));
+			}
 
 			if (property.IsReadOnly)
 			{
@@ -112,7 +116,9 @@ namespace Microsoft.Maui.Controls
 		public void ClearValue(BindablePropertyKey propertyKey)
 		{
 			if (propertyKey == null)
+			{
 				throw new ArgumentNullException(nameof(propertyKey));
+			}
 
 			ClearValueCore(propertyKey.BindableProperty, SetterSpecificity.ManualValueSetter);
 		}
@@ -122,12 +128,15 @@ namespace Microsoft.Maui.Controls
 
 			BindablePropertyContext bpcontext = GetContext(property);
 			if (bpcontext == null)
+			{
 				return;
+			}
 
 			var original = bpcontext.Values.GetSpecificityAndValue();
 			if (original.Key == SetterSpecificity.FromHandler)
+			{
 				bpcontext.Values.Remove(SetterSpecificity.FromHandler);
-
+			}
 
 			var newValue = bpcontext.Values.GetClearedValue(specificity);
 			var changed = !Equals(original.Value, newValue);
@@ -141,7 +150,9 @@ namespace Microsoft.Maui.Controls
 
 			//there's some side effect implemented in CoerceValue (see IsEnabled) that we need to trigger here
 			if (property.CoerceValue != null)
+			{
 				property.CoerceValue(this, newValue);
+			}
 
 			if (changed)
 			{
@@ -164,7 +175,9 @@ namespace Microsoft.Maui.Controls
 		public object GetValue(BindableProperty property)
 		{
 			if (property == null)
+			{
 				throw new ArgumentNullException(nameof(property));
+			}
 
 			var context = property.DefaultValueCreator != null ? GetOrCreateContext(property) : GetContext(property);
 
@@ -247,9 +260,35 @@ namespace Microsoft.Maui.Controls
 		{
 			var bpcontext = GetContext(targetProperty ?? throw new ArgumentNullException(nameof(targetProperty)));
 			if (bpcontext == null)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return false;
 			if ((bpcontext.Attributes & BindableContextAttributes.IsDefaultValueCreated) == BindableContextAttributes.IsDefaultValueCreated)
 				return true;
+After:
+			{
+				return false;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return false;
+			if ((bpcontext.Attributes & BindableContextAttributes.IsDefaultValueCreated) == BindableContextAttributes.IsDefaultValueCreated)
+				return true;
+After:
+			{
+				return false;
+*/
+			{
+				return false;
+			}
+
+			if ((bpcontext.Attributes & BindableContextAttributes.IsDefaultValueCreated) == BindableContextAttributes.IsDefaultValueCreated)
+			{
+				return true;
+			}
+
 			return bpcontext.Values.GetSpecificityAndValue().Key.CompareTo(SetterSpecificity.DefaultValue) != 0;
 		}
 
@@ -266,7 +305,9 @@ namespace Microsoft.Maui.Controls
 
 			var specificity = SetterSpecificity.FromBinding;
 			if (context != null && context.Bindings.Count > 0)
+			{
 				specificity = context.Bindings.Last().Key;
+			}
 
 			RemoveBinding(property, specificity);
 		}
@@ -276,7 +317,9 @@ namespace Microsoft.Maui.Controls
 			BindablePropertyContext context = GetContext(property ?? throw new ArgumentNullException(nameof(property)));
 
 			if (context != null && context.Bindings.Count > 0)
+			{
 				RemoveBinding(property, context, specificity);
+			}
 		}
 
 		/// <summary>
@@ -290,7 +333,9 @@ namespace Microsoft.Maui.Controls
 		internal void SetBinding(BindableProperty targetProperty, BindingBase binding, SetterSpecificity specificity)
 		{
 			if (targetProperty == null)
+			{
 				throw new ArgumentNullException(nameof(targetProperty));
+			}
 
 			if (targetProperty.IsReadOnly && binding.Mode == BindingMode.OneWay)
 			{
@@ -344,10 +389,14 @@ namespace Microsoft.Maui.Controls
 			//I wonder if we coulnd't treat bindingcoutext with specificities
 			BindablePropertyContext bpContext = bindable.GetContext(BindingContextProperty);
 			if (bpContext != null && bpContext.Values.GetSpecificityAndValue().Key.CompareTo(SetterSpecificity.ManualValueSetter) >= 0)
+			{
 				return;
+			}
 
 			if (ReferenceEquals(bindable._inheritedContext?.Target, value))
+			{
 				return;
+			}
 
 			var binding = bpContext?.Bindings.Values.LastOrDefault();
 
@@ -362,145 +411,9 @@ namespace Microsoft.Maui.Controls
 			}
 
 			bindable.ApplyBindings(skipBindingContext: false, fromBindingContextChanged: true);
-			bindable.OnBindingContextChanged();
-		}
 
-		/// <summary>
-		/// Applies all the current bindings to <see cref="BindingContext" />.
-		/// </summary>
-		protected void ApplyBindings() => ApplyBindings(skipBindingContext: false, fromBindingContextChanged: false);
-
-		/// <summary>
-		/// Raises the <see cref="BindingContextChanged"/> event.
-		/// </summary>
-		protected virtual void OnBindingContextChanged()
-		{
-			BindingContextChanged?.Invoke(this, EventArgs.Empty);
-
-			if (Shell.GetBackButtonBehavior(this) is BackButtonBehavior buttonBehavior)
-				SetInheritedBindingContext(buttonBehavior, BindingContext);
-
-			if (Shell.GetSearchHandler(this) is SearchHandler searchHandler)
-				SetInheritedBindingContext(searchHandler, BindingContext);
-		}
-
-		/// <summary>
-		/// Raises the <see cref="PropertyChanged"/> event.
-		/// </summary>
-		/// <param name="propertyName">The name of the property that has changed.</param>
-		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-		/// <summary>
-		/// Raises the <see cref="PropertyChanging"/> event.
-		/// </summary>
-		/// <param name="propertyName">The name of the property that is changing.</param>
-		protected virtual void OnPropertyChanging([CallerMemberName] string propertyName = null)
-			=> PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
-
-		/// <summary>
-		/// Removes all current bindings from the current context.
-		/// </summary>
-		protected void UnapplyBindings()
-		{
-			foreach (var context in _properties.Values)
-				context.Bindings.Values.LastOrDefault()?.Unapply();
-		}
-
-		internal bool GetIsBound(BindableProperty targetProperty)
-		{
-			if (targetProperty == null)
-				throw new ArgumentNullException(nameof(targetProperty));
-
-			BindablePropertyContext bpcontext = GetContext(targetProperty);
-			return bpcontext != null && bpcontext.Bindings.Count > 0;
-		}
-
-		internal virtual void OnRemoveDynamicResource(BindableProperty property)
-		{
-		}
-
-		internal virtual void OnSetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
-		{
-		}
-
-		internal void RemoveDynamicResource(BindableProperty property)
-			=> RemoveDynamicResource(property, SetterSpecificity.DynamicResourceSetter);
-
-		internal void RemoveDynamicResource(BindableProperty property, SetterSpecificity specificity)
-		{
-			if (property == null)
-				throw new ArgumentNullException(nameof(property));
-
-			OnRemoveDynamicResource(property);
-			BindablePropertyContext context = GetOrCreateContext(property);
-			context.Attributes &= ~BindableContextAttributes.IsDynamicResource;
-		}
-
-		void IDynamicResourceHandler.SetDynamicResource(BindableProperty property, string key)
-			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
-
-		internal void SetDynamicResource(BindableProperty property, string key)
-			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
-
-		//FIXME, use specificity
-		internal void SetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
-		{
-			if (property == null)
-				throw new ArgumentNullException(nameof(property));
-			if (string.IsNullOrEmpty(key))
-				throw new ArgumentNullException(nameof(key));
-
-			OnSetDynamicResource(property, key, specificity);
-		}
-
-		/// <summary>
-		/// Sets the value of the specified bindable property.
-		/// </summary>
-		/// <param name="property">The bindable property on which to assign a value.</param>
-		/// <param name="value">The value to set.</param>
-		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
-		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
-		public void SetValue(BindableProperty property, object value)
-		{
-			if (property == null)
-				throw new ArgumentNullException(nameof(property));
-
-			if (property.IsReadOnly)
-			{
-				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
-				return;
-			}
-			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
-		}
-
-		/// <summary>
-		/// Sets the value of the specified bindable property.
-		/// </summary>
-		/// <param name="propertyKey">The key that identifies the bindable property to assign the value to.</param>
-		/// <param name="value">The value to set.</param>
-		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
-		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
-		public void SetValue(BindablePropertyKey propertyKey, object value)
-		{
-			if (propertyKey == null)
-				throw new ArgumentNullException(nameof(propertyKey));
-
-			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
-		}
-
-		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
-		{
-			if (property == null)
-				throw new ArgumentNullException(nameof(property));
-
-			if (property.IsReadOnly)
-			{
-				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
-				return;
-			}
-
-			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+/* Unmerged change from project 'Controls.Core(net8.0)'
+Before:
 		}
 
 		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
@@ -645,101 +558,492 @@ namespace Microsoft.Maui.Controls
 		}
 
 		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
-		{
-			var prop = _properties.Values.ToArray();
-			for (int i = 0, propLength = prop.Length; i < propLength; i++)
-			{
-				BindablePropertyContext context = prop[i];
-				var kvp = context.Bindings.LastOrDefault();
-				var specificity = kvp.Key;
-				var binding = kvp.Value;
-
-				if (binding == null)
-					continue;
-
-				if (skipBindingContext && ReferenceEquals(context.Property, BindingContextProperty))
-					continue;
-
-				binding.Unapply(fromBindingContextChanged: fromBindingContextChanged);
-				binding.Apply(BindingContext, this, context.Property, fromBindingContextChanged, specificity);
-			}
-		}
-
-		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)
-		{
-			object context = bindable._inheritedContext?.Target;
-			var oldBinding = oldBindingBase as Binding;
-			var newBinding = newBindingBase as Binding;
-
-			if (context == null && oldBinding != null)
-				context = oldBinding.Context;
-			if (context != null && newBinding != null)
-				newBinding.Context = context;
-		}
-
-		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
-		{
-			bindable._inheritedContext = null;
-			bindable.ApplyBindings(skipBindingContext: true, fromBindingContextChanged: true);
+After:
 			bindable.OnBindingContextChanged();
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		BindablePropertyContext CreateAndAddContext(BindableProperty property)
-		{
-			var defaultValueCreator = property.DefaultValueCreator;
-			var context = new BindablePropertyContext { Property = property };
-			context.Values.SetValue(SetterSpecificity.DefaultValue, defaultValueCreator != null ? defaultValueCreator(this) : property.DefaultValue);
+		/// <summary>
+		/// Applies all the current bindings to <see cref="BindingContext" />.
+		/// </summary>
+		protected void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+*/
 
-			if (defaultValueCreator != null)
-				context.Attributes = BindableContextAttributes.IsDefaultValueCreated;
-
-			_properties.Add(property, context);
-			return context;
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal BindablePropertyContext GetContext(BindableProperty property) => _properties.TryGetValue(property, out var result) ? result : null;
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		BindablePropertyContext GetOrCreateContext(BindableProperty property) => GetContext(property) ?? CreateAndAddContext(property);
-
-		void RemoveBinding(BindableProperty property, BindablePropertyContext context, SetterSpecificity specificity)
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
 		{
-			var count = context.Bindings.Count;
+			if (propertyKey == null)
+				throw new ArgumentNullException(nameof(propertyKey));
 
-			if (count == 0)
-				return; //used to fail;
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
 
-			var currentbinding = context.Bindings.Values.Last();
-			var binding = context.Bindings[specificity];
-			var isCurrent = binding == currentbinding;
-
-			if (isCurrent)
-			{
-				binding.Unapply();
-
-				currentbinding = null;
-				if (count > 1)
-					currentbinding = context.Bindings.Values.ElementAt(count - 2);
-
-				property.BindingChanging?.Invoke(this, binding, currentbinding);
-
-				currentbinding?.Apply(BindingContext, this, property, false, context.Bindings.Keys.ElementAt(count - 2));
-			}
-
-			context.Bindings.Remove(specificity);
 		}
 
 		/// <summary>
-		/// Coerces the value of the specified bindable property.
-		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// Method for internal use to set the value of the specified property.
 		/// </summary>
-		/// <param name="property">The bindable property to coerce the value of.</param>
-		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
-		/// <exception cref="InvalidOperationException">Thrown when <paramref name="property"/> is read-only.</exception>
-		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
-		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+				value = property.CoerceValue(this, value);
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+				RemoveDynamicResource(property);
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+After:
+			bindable.OnBindingContextChanged();
+		}
+
+		/// <summary>
+		/// Applies all the current bindings to <see cref="BindingContext" />.
+		/// </summary>
+		protected void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+				throw new ArgumentNullException(nameof(propertyKey));
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+				value = property.CoerceValue(this, value);
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+				RemoveDynamicResource(property);
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+After:
+			bindable.OnBindingContextChanged();
+		}
+
+		/// <summary>
+		/// Applies all the current bindings to <see cref="BindingContext" />.
+		/// </summary>
+		protected void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+				throw new ArgumentNullException(nameof(propertyKey));
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+				value = property.CoerceValue(this, value);
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+				RemoveDynamicResource(property);
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+After:
+			bindable.OnBindingContextChanged();
+		}
+
+		/// <summary>
+		/// Applies all the current bindings to <see cref="BindingContext" />.
+		/// </summary>
+		protected void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+*/
+			bindable.OnBindingContextChanged();
+		}
+
+		/// <summary>
+		/// Applies all the current bindings to <see cref="BindingContext" />.
+		/// </summary>
+		protected void ApplyBindings(
+/* Unmerged change from project 'Controls.Core(net8.0)'
+Before:
 		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
 
 		/// <summary>
@@ -775,6 +1079,2187 @@ namespace Microsoft.Maui.Controls
 
 			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
 				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+After:
+		public void RemoveDynamicResource(BindableProperty property)
+			=> RemoveDynamicResource(property, SetterSpecificity.DynamicResourceSetter);
+
+		internal void RemoveDynamicResource(BindableProperty property, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			OnRemoveDynamicResource(property);
+			BindablePropertyContext context = GetOrCreateContext(property);
+			context.Attributes &= ~BindableContextAttributes.IsDynamicResource;
+		}
+
+		void IDynamicResourceHandler.SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		internal void SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		//FIXME, use specificity
+		internal void SetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (string.IsNullOrEmpty(key))
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			OnSetDynamicResource(property, key, specificity);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property on which to assign a value.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
+		public void SetValue(BindableProperty property, object value)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to assign the value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		public void SetValue(BindablePropertyKey propertyKey, object value)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+			{
+				value = property.CoerceValue(this, value);
+			}
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+				{
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+				}
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+			{
+				RemoveDynamicResource(property);
+			}
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+		{
+			var prop = _properties.Values.ToArray();
+			for (int i = 0, propLength = prop.Length; i < propLength; i++)
+			{
+				BindablePropertyContext context = prop[i];
+				var kvp = context.Bindings.LastOrDefault();
+				var specificity = kvp.Key;
+				var binding = kvp.Value;
+
+				if (binding == null)
+				{
+					continue;
+				}
+
+				if (skipBindingContext && ReferenceEquals(context.Property, BindingContextProperty))
+				{
+					continue;
+				}
+
+				binding.Unapply(fromBindingContextChanged: fromBindingContextChanged);
+				binding.Apply(BindingContext, this, context.Property, fromBindingContextChanged, specificity);
+			}
+		}
+
+		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)
+		{
+			object context = bindable._inheritedContext?.Target;
+			var oldBinding = oldBindingBase as Binding;
+			var newBinding = newBindingBase as Binding;
+
+			if (context == null && oldBinding != null)
+			{
+				context = oldBinding.Context;
+			}
+
+			if (context != null && newBinding != null)
+			{
+				newBinding.Context = context;
+			}
+		}
+
+		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
+		{
+			bindable._inheritedContext = null;
+			bindable.ApplyBindings(skipBindingContext: true, fromBindingContextChanged: true);
+			bindable.OnBindingContextChanged();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext CreateAndAddContext(BindableProperty property)
+		{
+			var defaultValueCreator = property.DefaultValueCreator;
+			var context = new BindablePropertyContext { Property = property };
+			context.Values.SetValue(SetterSpecificity.DefaultValue, defaultValueCreator != null ? defaultValueCreator(this) : property.DefaultValue);
+
+			if (defaultValueCreator != null)
+			{
+				context.Attributes = BindableContextAttributes.IsDefaultValueCreated;
+			}
+
+			_properties.Add(property, context);
+			return context;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal BindablePropertyContext GetContext(BindableProperty property) => _properties.TryGetValue(property, out var result) ? result : null;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext GetOrCreateContext(BindableProperty property) => GetContext(property) ?? CreateAndAddContext(property);
+
+		void RemoveBinding(BindableProperty property, BindablePropertyContext context, SetterSpecificity specificity)
+		{
+			var count = context.Bindings.Count;
+
+			if (count == 0)
+			{
+				return; //used to fail;
+			}
+
+			var currentbinding = context.Bindings.Values.Last();
+			var binding = context.Bindings[specificity];
+			var isCurrent = binding == currentbinding;
+
+			if (isCurrent)
+			{
+				binding.Unapply();
+
+				currentbinding = null;
+				if (count > 1)
+				{
+					currentbinding = context.Bindings.Values.ElementAt(count - 2);
+				}
+
+				property.BindingChanging?.Invoke(this, binding, currentbinding);
+
+				currentbinding?.Apply(BindingContext, this, property, false, context.Bindings.Keys.ElementAt(count - 2));
+			}
+
+			context.Bindings.Remove(specificity);
+		}
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when <paramref name="property"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (checkAccess && property.IsReadOnly)
+			{
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+			}
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+			{
+				return;
+			}
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+			{
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+			}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+				throw new ArgumentNullException(nameof(propertyKey));
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			if (checkAccess && property.IsReadOnly)
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+				return;
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+After:
+		public void RemoveDynamicResource(BindableProperty property)
+			=> RemoveDynamicResource(property, SetterSpecificity.DynamicResourceSetter);
+
+		internal void RemoveDynamicResource(BindableProperty property, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			OnRemoveDynamicResource(property);
+			BindablePropertyContext context = GetOrCreateContext(property);
+			context.Attributes &= ~BindableContextAttributes.IsDynamicResource;
+		}
+
+		void IDynamicResourceHandler.SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		internal void SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		//FIXME, use specificity
+		internal void SetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (string.IsNullOrEmpty(key))
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			OnSetDynamicResource(property, key, specificity);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property on which to assign a value.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
+		public void SetValue(BindableProperty property, object value)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to assign the value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		public void SetValue(BindablePropertyKey propertyKey, object value)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+			{
+				value = property.CoerceValue(this, value);
+			}
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+				{
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+				}
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+			{
+				RemoveDynamicResource(property);
+			}
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+		{
+			var prop = _properties.Values.ToArray();
+			for (int i = 0, propLength = prop.Length; i < propLength; i++)
+			{
+				BindablePropertyContext context = prop[i];
+				var kvp = context.Bindings.LastOrDefault();
+				var specificity = kvp.Key;
+				var binding = kvp.Value;
+
+				if (binding == null)
+				{
+					continue;
+				}
+
+				if (skipBindingContext && ReferenceEquals(context.Property, BindingContextProperty))
+				{
+					continue;
+				}
+
+				binding.Unapply(fromBindingContextChanged: fromBindingContextChanged);
+				binding.Apply(BindingContext, this, context.Property, fromBindingContextChanged, specificity);
+			}
+		}
+
+		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)
+		{
+			object context = bindable._inheritedContext?.Target;
+			var oldBinding = oldBindingBase as Binding;
+			var newBinding = newBindingBase as Binding;
+
+			if (context == null && oldBinding != null)
+			{
+				context = oldBinding.Context;
+			}
+
+			if (context != null && newBinding != null)
+			{
+				newBinding.Context = context;
+			}
+		}
+
+		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
+		{
+			bindable._inheritedContext = null;
+			bindable.ApplyBindings(skipBindingContext: true, fromBindingContextChanged: true);
+			bindable.OnBindingContextChanged();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext CreateAndAddContext(BindableProperty property)
+		{
+			var defaultValueCreator = property.DefaultValueCreator;
+			var context = new BindablePropertyContext { Property = property };
+			context.Values.SetValue(SetterSpecificity.DefaultValue, defaultValueCreator != null ? defaultValueCreator(this) : property.DefaultValue);
+
+			if (defaultValueCreator != null)
+			{
+				context.Attributes = BindableContextAttributes.IsDefaultValueCreated;
+			}
+
+			_properties.Add(property, context);
+			return context;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal BindablePropertyContext GetContext(BindableProperty property) => _properties.TryGetValue(property, out var result) ? result : null;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext GetOrCreateContext(BindableProperty property) => GetContext(property) ?? CreateAndAddContext(property);
+
+		void RemoveBinding(BindableProperty property, BindablePropertyContext context, SetterSpecificity specificity)
+		{
+			var count = context.Bindings.Count;
+
+			if (count == 0)
+			{
+				return; //used to fail;
+			}
+
+			var currentbinding = context.Bindings.Values.Last();
+			var binding = context.Bindings[specificity];
+			var isCurrent = binding == currentbinding;
+
+			if (isCurrent)
+			{
+				binding.Unapply();
+
+				currentbinding = null;
+				if (count > 1)
+				{
+					currentbinding = context.Bindings.Values.ElementAt(count - 2);
+				}
+
+				property.BindingChanging?.Invoke(this, binding, currentbinding);
+
+				currentbinding?.Apply(BindingContext, this, property, false, context.Bindings.Keys.ElementAt(count - 2));
+			}
+
+			context.Bindings.Remove(specificity);
+		}
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when <paramref name="property"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (checkAccess && property.IsReadOnly)
+			{
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+			}
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+			{
+				return;
+			}
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+			{
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+			}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+				throw new ArgumentNullException(nameof(propertyKey));
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			if (checkAccess && property.IsReadOnly)
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+				return;
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+After:
+		public void RemoveDynamicResource(BindableProperty property)
+			=> RemoveDynamicResource(property, SetterSpecificity.DynamicResourceSetter);
+
+		internal void RemoveDynamicResource(BindableProperty property, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			OnRemoveDynamicResource(property);
+			BindablePropertyContext context = GetOrCreateContext(property);
+			context.Attributes &= ~BindableContextAttributes.IsDynamicResource;
+		}
+
+		void IDynamicResourceHandler.SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		internal void SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		//FIXME, use specificity
+		internal void SetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (string.IsNullOrEmpty(key))
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			OnSetDynamicResource(property, key, specificity);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property on which to assign a value.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
+		public void SetValue(BindableProperty property, object value)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to assign the value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		public void SetValue(BindablePropertyKey propertyKey, object value)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+			{
+				value = property.CoerceValue(this, value);
+			}
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+				{
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+				}
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+			{
+				RemoveDynamicResource(property);
+			}
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+		{
+			var prop = _properties.Values.ToArray();
+			for (int i = 0, propLength = prop.Length; i < propLength; i++)
+			{
+				BindablePropertyContext context = prop[i];
+				var kvp = context.Bindings.LastOrDefault();
+				var specificity = kvp.Key;
+				var binding = kvp.Value;
+
+				if (binding == null)
+				{
+					continue;
+				}
+
+				if (skipBindingContext && ReferenceEquals(context.Property, BindingContextProperty))
+				{
+					continue;
+				}
+
+				binding.Unapply(fromBindingContextChanged: fromBindingContextChanged);
+				binding.Apply(BindingContext, this, context.Property, fromBindingContextChanged, specificity);
+			}
+		}
+
+		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)
+		{
+			object context = bindable._inheritedContext?.Target;
+			var oldBinding = oldBindingBase as Binding;
+			var newBinding = newBindingBase as Binding;
+
+			if (context == null && oldBinding != null)
+			{
+				context = oldBinding.Context;
+			}
+
+			if (context != null && newBinding != null)
+			{
+				newBinding.Context = context;
+			}
+		}
+
+		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
+		{
+			bindable._inheritedContext = null;
+			bindable.ApplyBindings(skipBindingContext: true, fromBindingContextChanged: true);
+			bindable.OnBindingContextChanged();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext CreateAndAddContext(BindableProperty property)
+		{
+			var defaultValueCreator = property.DefaultValueCreator;
+			var context = new BindablePropertyContext { Property = property };
+			context.Values.SetValue(SetterSpecificity.DefaultValue, defaultValueCreator != null ? defaultValueCreator(this) : property.DefaultValue);
+
+			if (defaultValueCreator != null)
+			{
+				context.Attributes = BindableContextAttributes.IsDefaultValueCreated;
+			}
+
+			_properties.Add(property, context);
+			return context;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal BindablePropertyContext GetContext(BindableProperty property) => _properties.TryGetValue(property, out var result) ? result : null;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext GetOrCreateContext(BindableProperty property) => GetContext(property) ?? CreateAndAddContext(property);
+
+		void RemoveBinding(BindableProperty property, BindablePropertyContext context, SetterSpecificity specificity)
+		{
+			var count = context.Bindings.Count;
+
+			if (count == 0)
+			{
+				return; //used to fail;
+			}
+
+			var currentbinding = context.Bindings.Values.Last();
+			var binding = context.Bindings[specificity];
+			var isCurrent = binding == currentbinding;
+
+			if (isCurrent)
+			{
+				binding.Unapply();
+
+				currentbinding = null;
+				if (count > 1)
+				{
+					currentbinding = context.Bindings.Values.ElementAt(count - 2);
+				}
+
+				property.BindingChanging?.Invoke(this, binding, currentbinding);
+
+				currentbinding?.Apply(BindingContext, this, property, false, context.Bindings.Keys.ElementAt(count - 2));
+			}
+
+			context.Bindings.Remove(specificity);
+		}
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when <paramref name="property"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (checkAccess && property.IsReadOnly)
+			{
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+			}
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+			{
+				return;
+			}
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+			{
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+			}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+				throw new ArgumentNullException(nameof(propertyKey));
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			if (checkAccess && property.IsReadOnly)
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+				return;
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+After:
+		public void RemoveDynamicResource(BindableProperty property)
+			=> RemoveDynamicResource(property, SetterSpecificity.DynamicResourceSetter);
+
+		internal void RemoveDynamicResource(BindableProperty property, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			OnRemoveDynamicResource(property);
+			BindablePropertyContext context = GetOrCreateContext(property);
+			context.Attributes &= ~BindableContextAttributes.IsDynamicResource;
+		}
+
+		void IDynamicResourceHandler.SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		internal void SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		//FIXME, use specificity
+		internal void SetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (string.IsNullOrEmpty(key))
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			OnSetDynamicResource(property, key, specificity);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property on which to assign a value.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
+		public void SetValue(BindableProperty property, object value)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to assign the value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		public void SetValue(BindablePropertyKey propertyKey, object value)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+			{
+				value = property.CoerceValue(this, value);
+			}
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+				{
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+				}
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+			{
+				RemoveDynamicResource(property);
+			}
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+		{
+			var prop = _properties.Values.ToArray();
+			for (int i = 0, propLength = prop.Length; i < propLength; i++)
+			{
+				BindablePropertyContext context = prop[i];
+				var kvp = context.Bindings.LastOrDefault();
+				var specificity = kvp.Key;
+				var binding = kvp.Value;
+
+				if (binding == null)
+				{
+					continue;
+				}
+
+				if (skipBindingContext && ReferenceEquals(context.Property, BindingContextProperty))
+				{
+					continue;
+				}
+
+				binding.Unapply(fromBindingContextChanged: fromBindingContextChanged);
+				binding.Apply(BindingContext, this, context.Property, fromBindingContextChanged, specificity);
+			}
+		}
+
+		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)
+		{
+			object context = bindable._inheritedContext?.Target;
+			var oldBinding = oldBindingBase as Binding;
+			var newBinding = newBindingBase as Binding;
+
+			if (context == null && oldBinding != null)
+			{
+				context = oldBinding.Context;
+			}
+
+			if (context != null && newBinding != null)
+			{
+				newBinding.Context = context;
+			}
+		}
+
+		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
+		{
+			bindable._inheritedContext = null;
+			bindable.ApplyBindings(skipBindingContext: true, fromBindingContextChanged: true);
+			bindable.OnBindingContextChanged();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext CreateAndAddContext(BindableProperty property)
+		{
+			var defaultValueCreator = property.DefaultValueCreator;
+			var context = new BindablePropertyContext { Property = property };
+			context.Values.SetValue(SetterSpecificity.DefaultValue, defaultValueCreator != null ? defaultValueCreator(this) : property.DefaultValue);
+
+			if (defaultValueCreator != null)
+			{
+				context.Attributes = BindableContextAttributes.IsDefaultValueCreated;
+			}
+
+			_properties.Add(property, context);
+			return context;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal BindablePropertyContext GetContext(BindableProperty property) => _properties.TryGetValue(property, out var result) ? result : null;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext GetOrCreateContext(BindableProperty property) => GetContext(property) ?? CreateAndAddContext(property);
+
+		void RemoveBinding(BindableProperty property, BindablePropertyContext context, SetterSpecificity specificity)
+		{
+			var count = context.Bindings.Count;
+
+			if (count == 0)
+			{
+				return; //used to fail;
+			}
+
+			var currentbinding = context.Bindings.Values.Last();
+			var binding = context.Bindings[specificity];
+			var isCurrent = binding == currentbinding;
+
+			if (isCurrent)
+			{
+				binding.Unapply();
+
+				currentbinding = null;
+				if (count > 1)
+				{
+					currentbinding = context.Bindings.Values.ElementAt(count - 2);
+				}
+
+				property.BindingChanging?.Invoke(this, binding, currentbinding);
+
+				currentbinding?.Apply(BindingContext, this, property, false, context.Bindings.Keys.ElementAt(count - 2));
+			}
+
+			context.Bindings.Remove(specificity);
+		}
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when <paramref name="property"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (checkAccess && property.IsReadOnly)
+			{
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+			}
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+			{
+				return;
+			}
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+			{
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+			}
+*/
+) => ApplyBindings(skipBindingContext: false, fromBindingContextChanged: false);
+
+		/// <summary>
+		/// Raises the <see cref="BindingContextChanged"/> event.
+		/// </summary>
+		protected virtual void OnBindingContextChanged()
+		{
+			BindingContextChanged?.Invoke(this, EventArgs.Empty);
+
+			if (Shell.GetBackButtonBehavior(this) is BackButtonBehavior buttonBehavior)
+			{
+				SetInheritedBindingContext(buttonBehavior, BindingContext);
+			}
+
+			if (Shell.GetSearchHandler(this) is SearchHandler searchHandler)
+			{
+				SetInheritedBindingContext(searchHandler, BindingContext);
+			}
+		}
+
+		/// <summary>
+		/// Raises the <see cref="PropertyChanged"/> event.
+		/// </summary>
+		/// <param name="propertyName">The name of the property that has changed.</param>
+		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+		/// <summary>
+		/// Raises the <see cref="PropertyChanging"/> event.
+		/// </summary>
+		/// <param name="propertyName">The name of the property that is changing.</param>
+		protected virtual void OnPropertyChanging([CallerMemberName] string propertyName = null)
+			=> PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
+
+		/// <summary>
+		/// Removes all current bindings from the current context.
+		/// </summary>
+		protected void UnapplyBindings()
+		{
+			foreach (var context in _properties.Values)
+			{
+				context.Bindings.Values.LastOrDefault()?.Unapply();
+			}
+		}
+
+		internal bool GetIsBound(BindableProperty targetProperty)
+		{
+			if (targetProperty == null)
+			{
+				throw new ArgumentNullException(nameof(targetProperty));
+			}
+
+			BindablePropertyContext bpcontext = GetContext(targetProperty);
+			return bpcontext != null && bpcontext.Bindings.Count > 0;
+		}
+
+		internal virtual void OnRemoveDynamicResource(BindableProperty property)
+		{
+		}
+
+		internal virtual void OnSetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
+		{
+		}
+
+		internal void RemoveDynamicResource(BindableProperty property)
+			=> RemoveDynamicResource(property, SetterSpecificity.DynamicResourceSetter);
+
+		internal void RemoveDynamicResource(BindableProperty property, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			OnRemoveDynamicResource(property);
+			BindablePropertyContext context = GetOrCreateContext(property);
+			context.Attributes &= ~BindableContextAttributes.IsDynamicResource;
+		}
+
+		void IDynamicResourceHandler.SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		internal void SetDynamicResource(BindableProperty property, string key)
+			=> SetDynamicResource(property, key, SetterSpecificity.DynamicResourceSetter);
+
+		//FIXME, use specificity
+		internal void SetDynamicResource(BindableProperty property, string key, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (string.IsNullOrEmpty(key))
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			OnSetDynamicResource(property, key, specificity);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property on which to assign a value.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <remarks>If <paramref name="property"/> is read-only, nothing will happen.</remarks>
+		public void SetValue(BindableProperty property, object value)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		/// <summary>
+		/// Sets the value of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to assign the value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		public void SetValue(BindablePropertyKey propertyKey, object value)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, SetterSpecificity.ManualValueSetter);
+		}
+
+		internal void SetValue(BindableProperty property, object value, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (property.IsReadOnly)
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot set the BindableProperty \"{property.PropertyName}\" because it is readonly.");
+				return;
+			}
+
+			SetValueCore(property, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+		}
+
+		internal void SetValue(BindablePropertyKey propertyKey, object value, SetterSpecificity specificity)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			SetValueCore(propertyKey.BindableProperty, value, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource, SetValuePrivateFlags.Default, specificity);
+
+		}
+
+		/// <summary>
+		/// Method for internal use to set the value of the specified property.
+		/// </summary>
+		/// <param name="property">The bindable property to assign a value to.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="attributes">The flags that are applied for setting this value.</param>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("go away")]
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes = SetValueFlags.None)
+			=> SetValueCore(property, value, attributes, SetValuePrivateFlags.Default, new SetterSpecificity());
+
+		//FIXME: GO AWAY
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes)
+			=> SetValueCore(property, value, attributes, privateAttributes, new SetterSpecificity());
+
+		internal void SetValueCore(BindableProperty property, object value, SetValueFlags attributes, SetValuePrivateFlags privateAttributes, SetterSpecificity specificity)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			bool converted = (privateAttributes & SetValuePrivateFlags.Converted) != 0;
+
+			if (!converted && !property.TryConvert(ref value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Cannot convert {value} to type '{property.ReturnType}'");
+				return;
+			}
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, value))
+			{
+				Application.Current?.FindMauiContext()?.CreateLogger<BindableObject>()?.LogWarning($"Value is an invalid value for {property.PropertyName}");
+				return;
+			}
+
+			if (property.CoerceValue != null)
+			{
+				value = property.CoerceValue(this, value);
+			}
+
+			BindablePropertyContext context = GetOrCreateContext(property);
+
+			bool currentlyApplying = _applying;
+
+			if ((context.Attributes & BindableContextAttributes.IsBeingSet) != 0)
+			{
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue == null)
+				{
+					context.DelayedSetters = delayQueue = new Queue<SetValueArgs>();
+				}
+
+				delayQueue.Enqueue(new SetValueArgs(property, context, value, currentlyApplying, attributes, specificity));
+			}
+			else
+			{
+				var silent = (privateAttributes & SetValuePrivateFlags.Silent) != 0;
+				context.Attributes |= BindableContextAttributes.IsBeingSet;
+				SetValueActual(property, context, value, currentlyApplying, attributes, specificity, silent);
+
+				Queue<SetValueArgs> delayQueue = context.DelayedSetters;
+				if (delayQueue != null)
+				{
+					while (delayQueue.Count > 0)
+					{
+						SetValueArgs s = delayQueue.Dequeue();
+						SetValueActual(s.Property, s.Context, s.Value, s.CurrentlyApplying, s.Attributes, s.Specificity, silent);
+					}
+
+					context.DelayedSetters = null;
+				}
+
+				context.Attributes &= ~BindableContextAttributes.IsBeingSet;
+			}
+		}
+
+		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
+		{
+			var pair = context.Values.GetSpecificityAndValue();
+			var original = pair.Value;
+			var originalSpecificity = pair.Key;
+
+			//if the last value was set from handler, override it
+			if (specificity != SetterSpecificity.FromHandler
+				&& originalSpecificity == SetterSpecificity.FromHandler)
+			{
+				context.Values.Remove(SetterSpecificity.FromHandler);
+				pair = context.Values.GetSpecificityAndValue();
+				originalSpecificity = pair.Key;
+			}
+
+			//We keep setter of lower specificity so we can unapply
+			if (specificity.CompareTo(originalSpecificity) < 0)
+			{
+				context.Values[specificity] = value;
+				return;
+			}
+
+			bool raiseOnEqual = (attributes & SetValueFlags.RaiseOnEqual) != 0;
+
+			bool clearDynamicResources = (attributes & SetValueFlags.ClearDynamicResource) != 0;
+			bool clearOneWayBindings = (attributes & SetValueFlags.ClearOneWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+			bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
+
+			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				property.PropertyChanging?.Invoke(this, original, value);
+
+				OnPropertyChanging(property.PropertyName);
+			}
+
+			context.Values[specificity] = value;
+
+			context.Attributes &= ~BindableContextAttributes.IsDefaultValueCreated;
+
+			if ((context.Attributes & BindableContextAttributes.IsDynamicResource) != 0 && clearDynamicResources)
+			{
+				RemoveDynamicResource(property);
+			}
+
+			BindingBase binding = context.Bindings.Values.LastOrDefault();
+
+			if (!silent && (!sameValue || raiseOnEqual))
+			{
+				if (binding != null && !currentlyApplying)
+				{
+					_applying = true;
+					binding.Apply(true);
+					_applying = false;
+				}
+
+				OnPropertyChanged(property.PropertyName);
+
+				property.PropertyChanged?.Invoke(this, original, value);
+			}
+		}
+
+		internal void ApplyBindings(bool skipBindingContext, bool fromBindingContextChanged)
+		{
+			var prop = _properties.Values.ToArray();
+			for (int i = 0, propLength = prop.Length; i < propLength; i++)
+			{
+				BindablePropertyContext context = prop[i];
+				var kvp = context.Bindings.LastOrDefault();
+				var specificity = kvp.Key;
+				var binding = kvp.Value;
+
+				if (binding == null)
+				{
+					continue;
+				}
+
+				if (skipBindingContext && ReferenceEquals(context.Property, BindingContextProperty))
+				{
+					continue;
+				}
+
+				binding.Unapply(fromBindingContextChanged: fromBindingContextChanged);
+				binding.Apply(BindingContext, this, context.Property, fromBindingContextChanged, specificity);
+			}
+		}
+
+		static void BindingContextPropertyBindingChanging(BindableObject bindable, BindingBase oldBindingBase, BindingBase newBindingBase)
+		{
+			object context = bindable._inheritedContext?.Target;
+			var oldBinding = oldBindingBase as Binding;
+			var newBinding = newBindingBase as Binding;
+
+			if (context == null && oldBinding != null)
+			{
+				context = oldBinding.Context;
+			}
+
+			if (context != null && newBinding != null)
+			{
+				newBinding.Context = context;
+			}
+		}
+
+		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
+		{
+			bindable._inheritedContext = null;
+			bindable.ApplyBindings(skipBindingContext: true, fromBindingContextChanged: true);
+			bindable.OnBindingContextChanged();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext CreateAndAddContext(BindableProperty property)
+		{
+			var defaultValueCreator = property.DefaultValueCreator;
+			var context = new BindablePropertyContext { Property = property };
+			context.Values.SetValue(SetterSpecificity.DefaultValue, defaultValueCreator != null ? defaultValueCreator(this) : property.DefaultValue);
+
+			if (defaultValueCreator != null)
+			{
+				context.Attributes = BindableContextAttributes.IsDefaultValueCreated;
+			}
+
+			_properties.Add(property, context);
+			return context;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal BindablePropertyContext GetContext(BindableProperty property) => _properties.TryGetValue(property, out var result) ? result : null;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		BindablePropertyContext GetOrCreateContext(BindableProperty property) => GetContext(property) ?? CreateAndAddContext(property);
+
+		void RemoveBinding(BindableProperty property, BindablePropertyContext context, SetterSpecificity specificity)
+		{
+			var count = context.Bindings.Count;
+
+			if (count == 0)
+			{
+				return; //used to fail;
+			}
+
+			var currentbinding = context.Bindings.Values.Last();
+			var binding = context.Bindings[specificity];
+			var isCurrent = binding == currentbinding;
+
+			if (isCurrent)
+			{
+				binding.Unapply();
+
+				currentbinding = null;
+				if (count > 1)
+				{
+					currentbinding = context.Bindings.Values.ElementAt(count - 2);
+				}
+
+				property.BindingChanging?.Invoke(this, binding, currentbinding);
+
+				currentbinding?.Apply(BindingContext, this, property, false, context.Bindings.Keys.ElementAt(count - 2));
+			}
+
+			context.Bindings.Remove(specificity);
+		}
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="property">The bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="property"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when <paramref name="property"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindableProperty property) => CoerceValue(property, checkAccess: true);
+
+		/// <summary>
+		/// Coerces the value of the specified bindable property.
+		/// This is done by invoking <see cref="BindableProperty.CoerceValueDelegate"/> of the specified bindable property.
+		/// </summary>
+		/// <param name="propertyKey">The key that identifies the bindable property to coerce the value of.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="propertyKey"/> is <see langword="null"/>.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the bindable property identified by <paramref name="propertyKey"/> is read-only.</exception>
+		/// <exception cref="ArgumentException">Thrown when the value is invalid according to the assigned logic in <see cref="BindableProperty.ValidateValueDelegate"/>.</exception>
+		/// <remarks>If <see cref="BindableProperty.CoerceValueDelegate"/> is not assigned to, nothing will happen.</remarks>
+		public void CoerceValue(BindablePropertyKey propertyKey)
+		{
+			if (propertyKey == null)
+			{
+				throw new ArgumentNullException(nameof(propertyKey));
+			}
+
+			CoerceValue(propertyKey.BindableProperty, checkAccess: false);
+		}
+
+		void CoerceValue(BindableProperty property, bool checkAccess)
+		{
+			if (property == null)
+			{
+				throw new ArgumentNullException(nameof(property));
+			}
+
+			if (checkAccess && property.IsReadOnly)
+			{
+				throw new InvalidOperationException($"The BindableProperty \"{property.PropertyName}\" is readonly.");
+			}
+
+			BindablePropertyContext bpcontext = GetContext(property);
+			if (bpcontext == null)
+			{
+				return;
+			}
+
+			object currentValue = bpcontext.Values.GetSpecificityAndValue().Value;
+
+			if (property.ValidateValue != null && !property.ValidateValue(this, currentValue))
+			{
+				throw new ArgumentException($"Value is an invalid value for {property.PropertyName}", nameof(currentValue));
+			}
 
 			property.CoerceValue?.Invoke(this, currentValue);
 		}

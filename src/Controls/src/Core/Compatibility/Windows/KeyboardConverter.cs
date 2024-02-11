@@ -11,7 +11,14 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		{
 			var keyboard = value as Keyboard;
 			if (keyboard == null)
+			{
+			{
 				return null;
+			}
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Added:
+			}
+*/
 
 
 			var result = new InputScope();

@@ -14,6 +14,9 @@ namespace Microsoft.Maui.Graphics.Platform
 		public static string ToHex(this NSColor color)
 		{
 			if (color == null)
+
+/* Unmerged change from project 'Graphics(net7.0-macos)'
+Before:
 				return null;
 
 			var red = (float)color.RedComponent;
@@ -23,6 +26,34 @@ namespace Microsoft.Maui.Graphics.Platform
 
 			if (alpha < 1)
 				return "#" + ToHexString(red) + ToHexString(green) + ToHexString(blue) + ToHexString(alpha);
+After:
+			{
+				return null;
+*/
+			{
+				return null;
+			}
+
+			var red = (float)color.RedComponent;
+			var green = (float)color.GreenComponent;
+			var blue = (float)color.BlueComponent;
+			var alpha = (float)color.AlphaComponent;
+
+			if (alpha < 1)
+			{
+				return "#" + ToHexString(red) + ToHexString(green) + ToHexString(blue) + ToHexString(alpha);
+			}
+			}
+
+			var red = (float)color.RedComponent;
+			var green = (float)color.GreenComponent;
+			var blue = (float)color.BlueComponent;
+			var alpha = (float)color.AlphaComponent;
+
+			if (alpha < 1)
+			{
+				return "#" + ToHexString(red) + ToHexString(green) + ToHexString(blue) + ToHexString(alpha);
+			}
 
 			return "#" + ToHexString(red) + ToHexString(green) + ToHexString(blue);
 		}
@@ -32,7 +63,9 @@ namespace Microsoft.Maui.Graphics.Platform
 			var intValue = (int)(255f * value);
 			var stringValue = intValue.ToString("X");
 			if (stringValue.Length == 1)
+			{
 				return "0" + stringValue;
+			}
 
 			return stringValue;
 		}

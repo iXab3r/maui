@@ -143,7 +143,11 @@ namespace Microsoft.Maui.Controls.Platform
 		Task<CommandBar> IToolbarProvider.GetCommandBarAsync()
 		{
 			if (_commandBar != null)
+			{
+			{
 				return Task.FromResult(_commandBar);
+			}
+			}
 
 			_commandBarTcs = new TaskCompletionSource<CommandBar>();
 			ApplyTemplate();

@@ -55,6 +55,9 @@ namespace Microsoft.Maui
 			string rootPath = RootPath;
 			var filePath = Path.Combine(rootPath, font.FontName!);
 			if (File.Exists(filePath))
+
+/* Unmerged change from project 'Core(net8.0-android)'
+Before:
 				return filePath;
 
 			try
@@ -64,6 +67,38 @@ namespace Microsoft.Maui
 
 				if (!Directory.Exists(rootPath))
 					Directory.CreateDirectory(rootPath);
+After:
+			{
+				return filePath;
+			}
+
+			try
+			{
+				if (font.ResourceStream == null)
+				{
+					throw new InvalidOperationException("ResourceStream was null.");
+				}
+
+				if (!Directory.Exists(rootPath))
+				{
+					Directory.CreateDirectory(rootPath);
+				}
+*/
+			{
+				return filePath;
+			}
+
+			try
+			{
+				if (font.ResourceStream == null)
+				{
+					throw new InvalidOperationException("ResourceStream was null.");
+				}
+
+				if (!Directory.Exists(rootPath))
+				{
+					Directory.CreateDirectory(rootPath);
+				}
 
 				using (var fileStream = File.Create(filePath))
 				{

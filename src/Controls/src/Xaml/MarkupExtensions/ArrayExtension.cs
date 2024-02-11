@@ -20,14 +20,96 @@ namespace Microsoft.Maui.Controls.Xaml
 		public Array ProvideValue(IServiceProvider serviceProvider)
 		{
 			if (Type == null)
+			{
 				throw new InvalidOperationException("Type argument mandatory for x:Array extension");
+			}
 
 			if (Items == null)
+
+/* Unmerged change from project 'Controls.Xaml(net8.0)'
+Before:
 				return null;
 
 			var array = Array.CreateInstance(Type, Items.Count);
 			for (var i = 0; i < Items.Count; i++)
 				((IList)array)[i] = Items[i];
+After:
+			{
+				return null;
+			}
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+			{
+				((IList)array)[i] = Items[i];
+			}
+*/
+
+/* Unmerged change from project 'Controls.Xaml(net8.0-android)'
+Before:
+				return null;
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+				((IList)array)[i] = Items[i];
+After:
+			{
+				return null;
+			}
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+			{
+				((IList)array)[i] = Items[i];
+			}
+*/
+
+/* Unmerged change from project 'Controls.Xaml(net8.0-windows10.0.19041)'
+Before:
+				return null;
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+				((IList)array)[i] = Items[i];
+After:
+			{
+				return null;
+			}
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+			{
+				((IList)array)[i] = Items[i];
+			}
+*/
+
+/* Unmerged change from project 'Controls.Xaml(net8.0-windows10.0.20348)'
+Before:
+				return null;
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+				((IList)array)[i] = Items[i];
+After:
+			{
+				return null;
+			}
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+			{
+				((IList)array)[i] = Items[i];
+			}
+*/
+			{
+				return null;
+			}
+
+			var array = Array.CreateInstance(Type, Items.Count);
+			for (var i = 0; i < Items.Count; i++)
+			{
+				((IList)array)[i] = Items[i];
+			}
 
 			return array;
 		}

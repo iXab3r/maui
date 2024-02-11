@@ -19,24 +19,109 @@ namespace Microsoft.Maui.Controls
 			if (strValue != null)
 			{
 				if (strValue.Equals("Start", StringComparison.OrdinalIgnoreCase) || strValue.Equals("left", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.Start;
+				}
+
 				if (strValue.Equals("top", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.Start;
+				}
+
 				if (strValue.Equals("right", StringComparison.OrdinalIgnoreCase))
+
+/* Unmerged change from project 'Controls.Core(net8.0)'
+Before:
+					return direction;
+			}
+			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
+After:
+				{
 					return TextAlignment.End;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-ios)'
+Before:
+					return direction;
+			}
+			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
+After:
+				{
+					return TextAlignment.End;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-maccatalyst)'
+Before:
+					return direction;
+			}
+			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
+After:
+				{
+					return TextAlignment.End;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+					return direction;
+			}
+			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
+After:
+				{
+					return TextAlignment.End;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+					return direction;
+			}
+			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
+After:
+				{
+					return TextAlignment.End;
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+					return direction;
+			}
+			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
+After:
+				{
+					return TextAlignment.End;
+*/
+				{
+					return TextAlignment.End;
+				}
+
 				if (strValue.Equals("bottom", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.End;
+				}
+
 				if (strValue.Equals("center", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.Center;
+				}
+
 				if (strValue.Equals("middle", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.Center;
+				}
+
 				if (strValue.Equals("End", StringComparison.OrdinalIgnoreCase) || strValue.Equals("right", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.End;
+				}
+
 				if (strValue.Equals("Center", StringComparison.OrdinalIgnoreCase) || strValue.Equals("center", StringComparison.OrdinalIgnoreCase))
+				{
 					return TextAlignment.Center;
+				}
 
 				if (Enum.TryParse(strValue, out TextAlignment direction))
+				{
 					return direction;
+				}
 			}
 			throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}", strValue, typeof(TextAlignment)));
 		}
@@ -44,13 +129,25 @@ namespace Microsoft.Maui.Controls
 		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 		{
 			if (value is not TextAlignment ta)
+			{
 				throw new NotSupportedException();
+			}
+
 			if (ta == TextAlignment.Start)
+			{
 				return nameof(TextAlignment.Start);
+			}
+
 			if (ta == TextAlignment.Center)
+			{
 				return nameof(TextAlignment.Center);
+			}
+
 			if (ta == TextAlignment.End)
+			{
 				return nameof(TextAlignment.End);
+			}
+
 			throw new NotSupportedException();
 		}
 	}

@@ -60,11 +60,17 @@ namespace Microsoft.Maui.TestUtils.DeviceTests.Runners.VisualRunner
 					{
 						case NotifyCollectionChangedAction.Add:
 							foreach (TestCaseViewModel item in args.NewItems!)
+							{
 								_results.Add(item);
+							}
+
 							break;
 						case NotifyCollectionChangedAction.Remove:
 							foreach (TestCaseViewModel item in args.OldItems!)
+							{
 								_results.Remove(item);
+							}
+
 							break;
 						default:
 							throw new InvalidOperationException($"I can't work with {args.Action}");
@@ -188,7 +194,9 @@ namespace Microsoft.Maui.TestUtils.DeviceTests.Runners.VisualRunner
 		static bool IsTestFilterMatch(TestCaseViewModel test, FilterArgs query)
 		{
 			if (test == null)
+			{
 				throw new ArgumentNullException(nameof(test));
+			}
 
 			var state = query.State;
 			var pattern = query.Query;
@@ -203,8 +211,22 @@ namespace Microsoft.Maui.TestUtils.DeviceTests.Runners.VisualRunner
 				_ => throw new ArgumentException(),
 			};
 
+			TestState? requiredTestState = state switch
+			{
+				TestState.All => null,
+				TestState.Passed => TestState.Passed,
+				TestState.Failed => TestState.Failed,
+				TestState.Skipped => TestState.Skipped,
+				TestState.NotRun => TestState.NotRun,
+				_ => throw new ArgumentException(),
+			};
+
 			if (requiredTestState.HasValue && test.Result != requiredTestState.Value)
+			{
+			{
 				return false;
+			}
+			}
 
 			return
 				string.IsNullOrWhiteSpace(pattern) ||
@@ -240,7 +262,9 @@ namespace Microsoft.Maui.TestUtils.DeviceTests.Runners.VisualRunner
 		async void NavigateToResultExecute(TestCaseViewModel? testCase)
 		{
 			if (testCase == null)
+			{
 				return;
+			}
 
 			await _runner.RunAsync(testCase);
 

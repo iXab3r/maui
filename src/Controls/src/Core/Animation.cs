@@ -45,13 +45,31 @@ namespace Microsoft.Maui.Controls
 		public void Add(double beginAt, double finishAt, Animation animation)
 		{
 			if (beginAt < 0 || beginAt > 1)
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
 				throw new ArgumentOutOfRangeException("beginAt");
 
 			if (finishAt < 0 || finishAt > 1)
 				throw new ArgumentOutOfRangeException("finishAt");
+After:
+			{
+				throw new ArgumentOutOfRangeException("beginAt");
+*/
+			{
+				throw new ArgumentOutOfRangeException("beginAt");
+			}
+			}
+
+			if (finishAt < 0 || finishAt > 1)
+			{
+				throw new ArgumentOutOfRangeException("finishAt");
+			}
 
 			if (finishAt <= beginAt)
+			{
 				throw new ArgumentException("finishAt must be greater than beginAt");
+			}
 
 			animation.StartDelay = beginAt;
 			animation.Duration = finishAt - beginAt;
@@ -85,12 +103,56 @@ namespace Microsoft.Maui.Controls
 				foreach (Animation animation in childrenAnimations)
 				{
 					if (animation._finishedTriggered)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 						continue;
 
 					double val = Math.Max(0.0f, Math.Min(1.0f, (f - animation.StartDelay) / (animation.Duration)));
 
 					if (val <= 0.0f) // not ready to process yet
+After:
+					{
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
 						continue;
+
+					double val = Math.Max(0.0f, Math.Min(1.0f, (f - animation.StartDelay) / (animation.Duration)));
+
+					if (val <= 0.0f) // not ready to process yet
+After:
+					{
+*/
+					
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+					Action<double> callback = animation.GetCallback();
+After:
+					}
+
+					double val = animation.GetCallback();
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+					Action<double> callback = animation.GetCallback();
+After:
+					}
+
+					double val = animation.GetCallback();
+*/
+{
+						continue;
+					}
+
+					double val = Math.Max(0.0f, Math.Min(1.0f, (f - animation.StartDelay) / (animation.Duration)));
+
+					if (val <= 0.0f) // not ready to process yet
+					{
+						continue;
+					}
 
 					Action<double> callback = animation.GetCallback();
 					callback(val);

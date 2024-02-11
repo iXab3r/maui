@@ -18,7 +18,7 @@ public sealed class WpfDispatcherUnhandlerExceptionEventArgs : EventArgs
 	/// </summary>
 	/// <ExternalAPI/> 
 	public WindowsDispatcher Dispatcher { get; }
-	
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -34,5 +34,5 @@ public sealed class WpfDispatcherUnhandlerExceptionEventArgs : EventArgs
 		Exception = exception;
 		Dispatcher = dispatcher;
 	}
-        
+
 }

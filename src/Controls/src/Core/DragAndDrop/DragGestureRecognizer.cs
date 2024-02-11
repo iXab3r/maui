@@ -117,6 +117,9 @@ namespace Microsoft.Maui.Controls
 
 #pragma warning disable CS0618 // Type or member is obsolete
 			if (!args.Handled)
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
 				args.Data.PropertiesInternal.Add("DragSource", element);
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -131,7 +134,51 @@ namespace Microsoft.Maui.Controls
 				args.Data.Image = ie.Source;
 
 			if (String.IsNullOrWhiteSpace(args.Data.Text))
+After:
+			{
+				args.Data.PropertiesInternal.Add("DragSource", element);
+			}
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			if (args.Cancel || args.Handled)
+			{
+				return args;
+			}
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			_isDragActive = true;
+
+			if (args.Data.Image == null && element is IImageElement ie)
+			{
+				args.Data.Image = ie.Source;
+			}
+
+			if (String.IsNullOrWhiteSpace(args.Data.Text))
+*/
+			{
+				args.Data.PropertiesInternal.Add("DragSource", element);
+			}
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			if (args.Cancel || args.Handled)
+			{
+				return args;
+			}
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			_isDragActive = true;
+
+			if (args.Data.Image == null && element is IImageElement ie)
+			{
+				args.Data.Image = ie.Source;
+			}
+
+			if (String.IsNullOrWhiteSpace(args.Data.Text))
+			{
 				args.Data.Text = element?.GetStringValue();
+			}
 
 			return args;
 		}

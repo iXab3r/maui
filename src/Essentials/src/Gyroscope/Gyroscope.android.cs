@@ -33,9 +33,12 @@ namespace Microsoft.Maui.Devices.Sensors
 		void PlatformStop()
 		{
 			if (listener == null || Sensor == null)
+			{
 				return;
+			}
 
 			SensorManager!.UnregisterListener(listener, Sensor);
+			listener.Dispose();
 			listener.Dispose();
 			listener = null;
 		}
@@ -58,7 +61,9 @@ namespace Microsoft.Maui.Devices.Sensors
 		{
 			var values = e?.Values ?? Array.Empty<float>();
 			if (values.Count < 3)
+			{
 				return;
+			}
 
 			var data = new GyroscopeData(values[0], values[1], values[2]);
 			Callback?.Invoke(data);

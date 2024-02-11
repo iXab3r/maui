@@ -68,6 +68,9 @@ namespace Microsoft.Maui.Controls
 			var controller = (IShellController)Parent;
 
 			if (controller == null)
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return false;
 
 			bool accept = controller.ProposeNavigation(ShellNavigationSource.ShellSectionChanged,
@@ -80,6 +83,74 @@ namespace Microsoft.Maui.Controls
 
 			if (accept && setValue)
 				SetValueFromRenderer(CurrentItemProperty, shellSection);
+After:
+			{
+				return false;
+			}
+
+			bool accept = controller.ProposeNavigation(ShellNavigationSource.ShellSectionChanged,
+				this,
+				shellSection,
+				shellSection?.CurrentItem,
+				shellSection?.Stack,
+				true
+			);
+
+			if (accept && setValue)
+			{
+				SetValueFromRenderer(CurrentItemProperty, shellSection);
+			}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return false;
+
+			bool accept = controller.ProposeNavigation(ShellNavigationSource.ShellSectionChanged,
+				this,
+				shellSection,
+				shellSection?.CurrentItem,
+				shellSection?.Stack,
+				true
+			);
+
+			if (accept && setValue)
+				SetValueFromRenderer(CurrentItemProperty, shellSection);
+After:
+			{
+				return false;
+			}
+
+			bool accept = controller.ProposeNavigation(ShellNavigationSource.ShellSectionChanged,
+				this,
+				shellSection,
+				shellSection?.CurrentItem,
+				shellSection?.Stack,
+				true
+			);
+
+			if (accept && setValue)
+			{
+				SetValueFromRenderer(CurrentItemProperty, shellSection);
+			}
+*/
+			{
+				return false;
+			}
+
+			bool accept = controller.ProposeNavigation(ShellNavigationSource.ShellSectionChanged,
+				this,
+				shellSection,
+				shellSection?.CurrentItem,
+				shellSection?.Stack,
+				true
+			);
+
+			if (accept && setValue)
+			{
+			{
+				SetValueFromRenderer(CurrentItemProperty, shellSection);
+			}
 
 			return accept;
 		}
@@ -99,6 +170,9 @@ namespace Microsoft.Maui.Controls
 			{
 				Shell shell = Parent as Shell;
 				if (shell == null)
+
+/* Unmerged change from project 'Controls.Core(net8.0)'
+Before:
 					return true;
 
 				var displayedPage = shell.GetCurrentShellPage();
@@ -121,6 +195,221 @@ namespace Microsoft.Maui.Controls
 
 				if (ShellItemController.GetItems().Count <= 1)
 					defaultShowTabs = false;
+After:
+				{
+					return true;
+				}
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+				{
+					defaultShowTabs = false;
+				}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-ios)'
+Before:
+					return true;
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+					defaultShowTabs = false;
+After:
+				{
+					return true;
+				}
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+				{
+					defaultShowTabs = false;
+				}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-maccatalyst)'
+Before:
+					return true;
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+					defaultShowTabs = false;
+After:
+				{
+					return true;
+				}
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+				{
+					defaultShowTabs = false;
+				}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
+					return true;
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+					defaultShowTabs = false;
+After:
+				{
+					return true;
+				}
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+				{
+					defaultShowTabs = false;
+				}
+*/
+				{
+				{
+					return true;
+				}
+				}
+
+				var displayedPage = shell.GetCurrentShellPage();
+
+				bool defaultShowTabs = true;
+
+#if WINDOWS
+				// Windows supports nested tabs so we want the tabs to display
+				// if the current shell section has multiple contents
+				if (ShellItemController.GetItems().Count > 1 ||
+					(CurrentItem as IShellSectionController)?.GetItems()?.Count > 1)
+				{
+					defaultShowTabs = true;
+				}
+				else
+				{
+					defaultShowTabs = false;
+				}
+#else
+
+				if (ShellItemController.GetItems().Count <= 1)
+				{
+					defaultShowTabs = false;
+				}
 #endif
 
 				return shell.GetEffectiveValue<bool>(Shell.TabBarIsVisibleProperty, () => defaultShowTabs, null, displayedPage);
@@ -194,7 +483,9 @@ namespace Microsoft.Maui.Controls
 			if (Parent is Shell shell)
 			{
 				if (IsVisibleItem)
+				{
 					shell.SendStructureChanged();
+				}
 
 				shell.SendFlyoutItemsChanged();
 			}
@@ -207,7 +498,9 @@ namespace Microsoft.Maui.Controls
 				var current = (ShellItem)shellSection.Parent;
 
 				if (current.Items.Contains(shellSection))
+				{
 					current.CurrentItem = shellSection;
+				}
 
 				return current;
 			}
@@ -215,9 +508,13 @@ namespace Microsoft.Maui.Controls
 			ShellItem result = null;
 
 			if (shellSection is Tab)
+			{
 				result = new TabBar();
+			}
 			else
+			{
 				result = new ShellItem();
+			}
 
 			result.Route = Routing.GenerateImplicitRoute(shellSection.Route);
 
@@ -262,7 +559,11 @@ namespace Microsoft.Maui.Controls
 		void OnVisibleChildAdded(Element child)
 		{
 			if (CurrentItem == null && ((IShellItemController)this).GetItems().Contains(child))
+			{
+			{
 				SetValueFromRenderer(CurrentItemProperty, child);
+			}
+			}
 		}
 
 		void OnVisibleChildRemoved(Element child)
@@ -270,26 +571,64 @@ namespace Microsoft.Maui.Controls
 			if (CurrentItem == child)
 			{
 				if (ShellItemController.GetItems().Count == 0)
+
+/* Unmerged change from project 'Controls.Core(net8.0-ios)'
+Before:
 					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+After:
+				{
+					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+				}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-maccatalyst)'
+Before:
+					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+After:
+				{
+					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+				}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+After:
+				{
+					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+				}
+*/
+				{
+					ClearValue(CurrentItemProperty, specificity: SetterSpecificity.FromHandler);
+				}
 				else
+				{
+				{
 					SetValueFromRenderer(CurrentItemProperty, ShellItemController.GetItems()[0]);
+				}
 			}
 		}
 
 		static void OnCurrentItemChanged(BindableObject bindable, object oldValue, object newValue)
 		{
 			if (oldValue is BaseShellItem oldShellItem)
+			{
 				oldShellItem.SendDisappearing();
+			}
 
 			var shellItem = (ShellItem)bindable;
 
 			if (newValue == null)
+			{
 				return;
+			}
 
 			if (shellItem.Parent is Shell)
 			{
 				if (newValue is BaseShellItem newShellItem)
+				{
 					newShellItem.SendAppearing();
+				}
 			}
 
 			if (shellItem.Parent is IShellController shell && shellItem.IsVisibleItem)
@@ -300,7 +639,17 @@ namespace Microsoft.Maui.Controls
 			shellItem.SendStructureChanged();
 
 			if (shellItem.IsVisibleItem)
+			{
 				((IShellController)shellItem?.Parent)?.AppearanceChanged(shellItem, false);
+			}
+			}
+
+			shellItem.SendStructureChanged();
+
+			if (shellItem.IsVisibleItem)
+			{
+				((IShellController)shellItem?.Parent)?.AppearanceChanged(shellItem, false);
+			}
 		}
 
 		void ItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -308,7 +657,9 @@ namespace Microsoft.Maui.Controls
 			if (e.NewItems != null)
 			{
 				foreach (Element element in e.NewItems)
+				{
 					OnChildAdded(element);
+				}
 			}
 
 			if (e.OldItems != null)
@@ -340,7 +691,10 @@ namespace Microsoft.Maui.Controls
 		{
 			base.OnParentSet();
 			if (this.IsVisibleItem && CurrentItem != null)
+			{
 				((IShellController)Parent)?.AppearanceChanged(CurrentItem, false);
+			}
+			}
 		}
 	}
 }

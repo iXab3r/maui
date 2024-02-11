@@ -42,9 +42,47 @@ namespace Microsoft.Maui.Controls
 		internal static FlowDirection ToFlowDirection(this EffectiveFlowDirection self)
 		{
 			if (self.IsLeftToRight())
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Before:
 				return FlowDirection.LeftToRight;
 			else
+After:
+			{
+				return FlowDirection.LeftToRight;
+			}
+			else
+			{
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+				return FlowDirection.LeftToRight;
+			else
+After:
+			{
+				return FlowDirection.LeftToRight;
+			}
+			else
+			{
+*/
+			{
+				return FlowDirection.LeftToRight;
+
+/* Unmerged change from project 'Controls.Core(net8.0-android)'
+Added:
+			}
+*/
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Added:
+			}
+*/
+			}
+			else
+			{
 				return FlowDirection.RightToLeft;
+			}
 
 			throw new InvalidOperationException($"Cannot convert {self} to {nameof(FlowDirection)}.");
 		}

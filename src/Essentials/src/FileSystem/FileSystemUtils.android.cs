@@ -56,6 +56,9 @@ namespace Microsoft.Maui.Storage
 		{
 			// if this is a file, use that
 			if (uri.Scheme.Equals(UriSchemeFile, StringComparison.OrdinalIgnoreCase))
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
 				return uri.Path;
 
 			// try resolve using the content provider
@@ -65,8 +68,31 @@ namespace Microsoft.Maui.Storage
 
 			// fall back to just copying it
 			var cached = CacheContentFile(uri);
+After:
+			{
+				return uri.Path;
+			}
+
+			// try resolve using the content provider
+			var absolute = CacheContentFile(uri);
+*/
+			{
+				return uri.Path;
+			}
+
+			// try resolve using the content provider
+			var absolute = ResolvePhysicalPath(uri, requireExtendedAccess);
+			if (!string.IsNullOrWhiteSpace(absolute) && Path.IsPathRooted(absolute))
+			{
+				return absolute;
+			}
+
+			// fall back to just copying it
+			var cached = CacheContentFile(uri);
 			if (!string.IsNullOrWhiteSpace(cached) && Path.IsPathRooted(cached))
+			{
 				return cached;
+			}
 
 			throw new FileNotFoundException($"Unable to resolve absolute path or retrieve contents of URI '{uri}'.");
 		}
@@ -79,7 +105,9 @@ namespace Microsoft.Maui.Storage
 
 				var resolved = uri.Path;
 				if (File.Exists(resolved))
+				{
 					return resolved;
+				}
 			}
 			else if (!requireExtendedAccess || !OperatingSystem.IsAndroidVersionAtLeast(29))
 			{
@@ -89,13 +117,17 @@ namespace Microsoft.Maui.Storage
 				{
 					var resolved = ResolveDocumentPath(uri);
 					if (File.Exists(resolved))
+					{
 						return resolved;
+					}
 				}
 				else if (uri.Scheme.Equals(UriSchemeContent, StringComparison.OrdinalIgnoreCase))
 				{
 					var resolved = ResolveContentPath(uri);
 					if (File.Exists(resolved))
+					{
 						return resolved;
+					}
 				}
 			}
 
@@ -110,6 +142,9 @@ namespace Microsoft.Maui.Storage
 
 			var docIdParts = docId?.Split(':');
 			if (docIdParts == null || docIdParts.Length == 0)
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
 				return null;
 
 			if (uri.Authority.Equals(UriAuthorityExternalStorage, StringComparison.OrdinalIgnoreCase))
@@ -182,6 +217,260 @@ namespace Microsoft.Maui.Storage
 #pragma warning disable CS0618
 					if (contentUri != null && GetDataFilePath(contentUri, $"{MediaStore.MediaColumns.Id}=?", new[] { uriPath }) is string filePath)
 						return filePath;
+After:
+			{
+				return null;
+			}
+
+			if (uri.Authority.Equals(UriAuthorityExternalStorage, StringComparison.OrdinalIgnoreCase))
+			{
+				Debug.WriteLine($"Resolving external storage URI: '{uri}'");
+
+				if (docIdParts.Length == 2)
+				{
+					var storageType = docIdParts[0];
+					var uriPath = docIdParts[1];
+
+					// This is the internal "external" memory, NOT the SD Card
+					if (storageType.Equals(storageTypePrimary, StringComparison.OrdinalIgnoreCase))
+					{
+#pragma warning disable CS0618 // Type or member is obsolete
+						var root = global::Android.OS.Environment.ExternalStorageDirectory.Path;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+						return Path.Combine(root, uriPath);
+					}
+
+					// TODO: support other types, such as actual SD Cards
+				}
+			}
+			else if (uri.Authority.Equals(UriAuthorityDownloads, StringComparison.OrdinalIgnoreCase))
+			{
+				Debug.WriteLine($"Resolving downloads URI: '{uri}'");
+
+				// NOTE: This only really applies to older Android vesions since the privacy changes
+
+				if (docIdParts.Length == 2)
+				{
+					var storageType = docIdParts[0];
+					var uriPath = docIdParts[1];
+
+					if (storageType.Equals(storageTypeRaw, StringComparison.OrdinalIgnoreCase))
+					{
+						return uriPath;
+					}
+				}
+
+				// ID could be "###" or "msf:###"
+				var fileId = docIdParts.Length == 2
+					? docIdParts[1]
+					: docIdParts[0];
+
+				foreach (var prefix in contentUriPrefixes)
+				{
+					var uriString = prefix + "/" + fileId;
+					var contentUri = AndroidUri.Parse(uriString);
+
+					if (GetDataFilePath(contentUri) is string filePath)
+					{
+						return filePath;
+					}
+				}
+			}
+			else if (uri.Authority.Equals(UriAuthorityMedia, StringComparison.OrdinalIgnoreCase))
+			{
+				Debug.WriteLine($"Resolving media URI: '{uri}'");
+
+				if (docIdParts.Length == 2)
+				{
+					var storageType = docIdParts[0];
+					var uriPath = docIdParts[1];
+
+					AndroidUri contentUri = null;
+					if (storageType.Equals(storageTypeImage, StringComparison.OrdinalIgnoreCase))
+					{
+						contentUri = MediaStore.Images.Media.ExternalContentUri;
+					}
+					else if (storageType.Equals(storageTypeVideo, StringComparison.OrdinalIgnoreCase))
+					{
+						contentUri = MediaStore.Video.Media.ExternalContentUri;
+					}
+					else if (storageType.Equals(storageTypeAudio, StringComparison.OrdinalIgnoreCase))
+					{
+						contentUri = MediaStore.Audio.Media.ExternalContentUri;
+					}
+#pragma warning disable CS0618
+					if (contentUri != null && GetDataFilePath(contentUri, $"{MediaStore.MediaColumns.Id}=?", new[] { uriPath }) is string filePath)
+					{
+						return filePath;
+					}
+*/
+			{
+				return null;
+			}
+
+			if (uri.Authority.Equals(UriAuthorityExternalStorage, StringComparison.OrdinalIgnoreCase))
+			{
+				Debug.WriteLine($"Resolving external storage URI: '{uri}'");
+
+				if (docIdParts.Length == 2)
+				{
+					var storageType = docIdParts[0];
+					var uriPath = docIdParts[1];
+
+					// This is the internal "external" memory, NOT the SD Card
+					if (storageType.Equals(storageTypePrimary, StringComparison.OrdinalIgnoreCase))
+					{
+#pragma warning disable CS0618 // Type or member is obsolete
+						var root = global::Android.OS.Environment.ExternalStorageDirectory.Path;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+						return Path.Combine(root, uriPath);
+					}
+
+					// TODO: support other types, such as actual SD Cards
+				}
+			}
+			else if (uri.Authority.Equals(UriAuthorityDownloads, StringComparison.OrdinalIgnoreCase))
+			{
+				Debug.WriteLine($"Resolving downloads URI: '{uri}'");
+
+				// NOTE: This only really applies to older Android vesions since the privacy changes
+
+				if (docIdParts.Length == 2)
+				{
+					var storageType = docIdParts[0];
+					var uriPath = docIdParts[1];
+
+					if (storageType.Equals(storageTypeRaw, StringComparison.OrdinalIgnoreCase))
+					
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+				return filePath;
+After:
+			{
+				return filePath;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+				return null;
+
+			Debug.WriteLine($"Copying content URI to local cache: '{uri}'");
+
+			// open the source stream
+			using var srcStream = OpenContentStream(uri, out var extension);
+			if (srcStream == null)
+After:
+			{
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Added:
+			}
+
+			Debug.WriteLine($"Copying content URI to local cache: '{uri}'");
+
+			// open the source stream
+			using var srcStream = OpenContentStream(uri, out var extension);
+			if (srcStream == null)
+			{
+				return null;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+				filename = Path.ChangeExtension(filename, extension);
+After:
+			{
+				filename = Path.ChangeExtension(filename, extension);
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+				return false;
+After:
+			{
+				return false;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+					return value;
+After:
+				{
+					return value;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+				return path;
+After:
+			{
+				return path;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+					text = cursor.GetString(columnIndex);
+After:
+				{
+					text = cursor.GetString(columnIndex);
+*/
+{
+						return uriPath;
+					}
+				}
+
+				// ID could be "###" or "msf:###"
+				var fileId = docIdParts.Length == 2
+					? docIdParts[1]
+					: docIdParts[0];
+
+				foreach (var prefix in contentUriPrefixes)
+				{
+					var uriString = prefix + "/" + fileId;
+					var contentUri = AndroidUri.Parse(uriString);
+
+					if (GetDataFilePath(contentUri) is string filePath)
+					{
+						return filePath;
+					}
+				}
+			}
+			else if (uri.Authority.Equals(UriAuthorityMedia, StringComparison.OrdinalIgnoreCase))
+			{
+				Debug.WriteLine($"Resolving media URI: '{uri}'");
+
+				if (docIdParts.Length == 2)
+				{
+					var storageType = docIdParts[0];
+					var uriPath = docIdParts[1];
+
+					AndroidUri contentUri = null;
+					if (storageType.Equals(storageTypeImage, StringComparison.OrdinalIgnoreCase))
+					{
+						contentUri = MediaStore.Images.Media.ExternalContentUri;
+					}
+					else if (storageType.Equals(storageTypeVideo, StringComparison.OrdinalIgnoreCase))
+					{
+						contentUri = MediaStore.Video.Media.ExternalContentUri;
+					}
+					else if (storageType.Equals(storageTypeAudio, StringComparison.OrdinalIgnoreCase))
+					{
+						contentUri = MediaStore.Audio.Media.ExternalContentUri;
+					}
+#pragma warning disable CS0618
+					if (contentUri != null && GetDataFilePath(contentUri, $"{MediaStore.MediaColumns.Id}=?", new[] { uriPath }) is string filePath)
+					{
+						return filePath;
+					}
 #pragma warning restore CS0618
 				}
 			}
@@ -196,7 +485,9 @@ namespace Microsoft.Maui.Storage
 			Debug.WriteLine($"Trying to resolve content URI: '{uri}'");
 
 			if (GetDataFilePath(uri) is string filePath)
+			{
 				return filePath;
+			}
 
 			// TODO: support some additional things, like Google Photos if that is possible
 
@@ -208,14 +499,18 @@ namespace Microsoft.Maui.Storage
 		static string CacheContentFile(AndroidUri uri)
 		{
 			if (!uri.Scheme.Equals(UriSchemeContent, StringComparison.OrdinalIgnoreCase))
+			{
 				return null;
+			}
 
 			Debug.WriteLine($"Copying content URI to local cache: '{uri}'");
 
 			// open the source stream
 			using var srcStream = OpenContentStream(uri, out var extension);
 			if (srcStream == null)
+			{
 				return null;
+			}
 
 			// resolve or generate a valid destination path
 #pragma warning disable CS0618
@@ -223,7 +518,9 @@ namespace Microsoft.Maui.Storage
 #pragma warning restore CS0618
 
 			if (!Path.HasExtension(filename) && !string.IsNullOrEmpty(extension))
+			{
 				filename = Path.ChangeExtension(filename, extension);
+			}
 
 			// create a temporary file
 			var hasPermission = Permissions.IsDeclaredInManifest(global::Android.Manifest.Permission.WriteExternalStorage);
@@ -255,7 +552,9 @@ namespace Microsoft.Maui.Storage
 		static bool IsVirtualFile(AndroidUri uri)
 		{
 			if (!DocumentsContract.IsDocumentUri(Application.Context, uri))
+			{
 				return false;
+			}
 
 			var value = GetColumnValue(uri, DocumentsContract.Document.ColumnFlags);
 			if (!string.IsNullOrEmpty(value) && int.TryParse(value, out var flagsInt))
@@ -295,7 +594,9 @@ namespace Microsoft.Maui.Storage
 			{
 				var value = QueryContentResolverColumn(contentUri, column, selection, selectionArgs);
 				if (!string.IsNullOrEmpty(value))
+				{
 					return value;
+				}
 			}
 			catch
 			{
@@ -318,7 +619,9 @@ namespace Microsoft.Maui.Storage
 			// ask the content provider for the data column, which may contain the actual file path
 			var path = GetColumnValue(contentUri, column, selection, selectionArgs);
 			if (!string.IsNullOrEmpty(path) && Path.IsPathRooted(path))
+			{
 				return path;
+			}
 
 			return null;
 		}
@@ -342,7 +645,10 @@ namespace Microsoft.Maui.Storage
 			{
 				var columnIndex = cursor.GetColumnIndex(columnName);
 				if (columnIndex != -1)
+				{
 					text = cursor.GetString(columnIndex);
+				}
+				}
 			}
 
 			return text;

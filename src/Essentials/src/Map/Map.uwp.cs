@@ -39,7 +39,9 @@ namespace Microsoft.Maui.ApplicationModel
 		Uri GetMapsUri(double latitude, double longitude, MapLaunchOptions options)
 		{
 			if (options == null)
+			{
 				throw new ArgumentNullException(nameof(options));
+			}
 
 			var lat = latitude.ToString(CultureInfo.InvariantCulture);
 			var lng = longitude.ToString(CultureInfo.InvariantCulture);
@@ -61,10 +63,42 @@ namespace Microsoft.Maui.ApplicationModel
 		Uri GetMapsUri(Placemark placemark, MapLaunchOptions options)
 		{
 			if (placemark == null)
+
+/* Unmerged change from project 'Essentials(net7.0-windows10.0.19041)'
+Before:
 				throw new ArgumentNullException(nameof(placemark));
 
 			if (options == null)
 				throw new ArgumentNullException(nameof(options));
+After:
+			{
+				throw new ArgumentNullException(nameof(placemark));
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-windows10.0.20348)'
+Before:
+				throw new ArgumentNullException(nameof(placemark));
+
+			if (options == null)
+				throw new ArgumentNullException(nameof(options));
+After:
+			{
+				throw new ArgumentNullException(nameof(placemark));
+*/
+			{
+				throw new ArgumentNullException(nameof(placemark));
+			}
+
+			if (options == null)
+			{
+				throw new ArgumentNullException(nameof(options));
+			}
+			}
+
+			if (options == null)
+			{
+				throw new ArgumentNullException(nameof(options));
+			}
 
 			var uri = string.Empty;
 

@@ -43,9 +43,35 @@ namespace Microsoft.Maui.Maps
 		public override bool Equals(object? obj)
 		{
 			if (obj is null)
+
+/* Unmerged change from project 'Maps(net8.0-ios)'
+Before:
 				return false;
 			if (ReferenceEquals(this, obj))
 				return true;
+After:
+			{
+				return false;
+*/
+
+/* Unmerged change from project 'Maps(net8.0-maccatalyst)'
+Before:
+				return false;
+			if (ReferenceEquals(this, obj))
+				return true;
+After:
+			{
+				return false;
+*/
+			{
+				return false;
+			}
+
+			if (ReferenceEquals(this, obj))
+			{
+				return true;
+			}
+
 			return obj is MapSpan && Equals((MapSpan)obj);
 		}
 

@@ -15,9 +15,27 @@ namespace Microsoft.Maui.Authentication
 		public async Task<WebAuthenticatorResult> AuthenticateAsync(AppleSignInAuthenticator.Options options)
 		{
 			if (OperatingSystem.IsIOS() && !OperatingSystem.IsIOSVersionAtLeast(13))
-				throw new FeatureNotSupportedException();
 
-			if (OperatingSystem.IsMacCatalyst() && !OperatingSystem.IsMacCatalystVersionAtLeast(13, 1))
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
+				throw new FeatureNotSupportedException();
+After:
+			{
+				throw new FeatureNotSupportedException();
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+				throw new FeatureNotSupportedException();
+After:
+			{
+				throw new FeatureNotSupportedException();
+			}
+*/
+			
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
 				throw new FeatureNotSupportedException();
 
 			var provider = new ASAuthorizationAppleIdProvider();
@@ -41,9 +59,225 @@ namespace Microsoft.Maui.Authentication
 			controller.PerformRequests();
 
 			var creds = await authManager.GetCredentialsAsync();
+After:
+			{
+				throw new FeatureNotSupportedException();
+			}
 
+			var provider = new ASAuthorizationAppleIdProvider();
+			var req = provider.CreateRequest();
+
+			authManager = new AuthManager(WindowStateManager.Default.GetCurrentUIWindow(true));
+
+			var scopes = new List<ASAuthorizationScope>();
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+				throw new FeatureNotSupportedException();
+
+			var provider = new ASAuthorizationAppleIdProvider();
+			var req = provider.CreateRequest();
+
+			authManager = new AuthManager(WindowStateManager.Default.GetCurrentUIWindow(true));
+
+			var scopes = new List<ASAuthorizationScope>();
+
+			if (options.IncludeFullNameScope)
+				scopes.Add(ASAuthorizationScope.FullName);
+			if (options.IncludeEmailScope)
+				scopes.Add(ASAuthorizationScope.Email);
+
+			req.RequestedScopes = scopes.ToArray();
+			var controller = new ASAuthorizationController(new[] { req });
+
+			controller.Delegate = authManager;
+			controller.PresentationContextProvider = authManager;
+
+			controller.PerformRequests();
+
+			var creds = await authManager.GetCredentialsAsync();
+After:
+			{
+				throw new FeatureNotSupportedException();
+			}
+
+			var provider = new ASAuthorizationAppleIdProvider();
+			var req = provider.CreateRequest();
+
+			authManager = new AuthManager(WindowStateManager.Default.GetCurrentUIWindow(true));
+
+			var scopes = new List<ASAuthorizationScope>();
+*/
+{
+				throw new FeatureNotSupportedException();
+			}
+
+			if (OperatingSystem.I
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
 			if (creds == null)
 				return null;
+
+			var idToken = new NSString(creds.IdentityToken, NSStringEncoding.UTF8).ToString();
+			var authCode = new NSString(creds.AuthorizationCode, NSStringEncoding.UTF8).ToString();
+			var name = NSPersonNameComponentsFormatter.GetLocalizedString(creds.FullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+
+			var appleAccount = new WebAuthenticatorResult();
+			appleAccount.Properties.Add("id_token", idToken);
+			appleAccount.Properties.Add("authorization_code", authCode);
+			appleAccount.Properties.Add("state", creds.State);
+			appleAccount.Properties.Add("email", creds.Email);
+			appleAccount.Properties.Add("user_id", creds.User);
+			appleAccount.Properties.Add("name", name);
+			appleAccount.Properties.Add("realuserstatus", creds.RealUserStatus.ToString());
+
+			return appleAccount;
+		}
+	}
+
+	[System.Runtime.Versioning.SupportedOSPlatform("ios13.0")]
+	[System.Runtime.Versioning.SupportedOSPlatform("maccatalyst13.1")]
+	class AuthManager : NSObject, IASAuthorizationControllerDelegate, IASAuthorizationControllerPresentationContextProviding
+	{
+		public Task<ASAuthorizationAppleIdCredential> GetCredentialsAsync()
+			=> tcsCredential?.Task;
+After:
+			if (options.IncludeFullNameScope)
+			{
+				scopes.Add(ASAuthorizationScope.FullName);
+			}
+
+			if (options.IncludeEmailScope)
+			{
+				scopes.Add(ASAuthorizationScope.Email);
+			}
+
+			req.RequestedScopes = scopes.ToArray();
+			var controller = new ASAuthorizationController();
+
+			controller.Delegate = authManager;
+			controller.PresentationContextProvider = authManager;
+
+			controller.PerformRequests();
+
+			var creds = await authManager.GetCredentialsAsync();
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+			if (creds == null)
+				return null;
+
+			var idToken = new NSString(creds.IdentityToken, NSStringEncoding.UTF8).ToString();
+			var authCode = new NSString(creds.AuthorizationCode, NSStringEncoding.UTF8).ToString();
+			var name = NSPersonNameComponentsFormatter.GetLocalizedString(creds.FullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+
+			var appleAccount = new WebAuthenticatorResult();
+			appleAccount.Properties.Add("id_token", idToken);
+			appleAccount.Properties.Add("authorization_code", authCode);
+			appleAccount.Properties.Add("state", creds.State);
+			appleAccount.Properties.Add("email", creds.Email);
+			appleAccount.Properties.Add("user_id", creds.User);
+			appleAccount.Properties.Add("name", name);
+			appleAccount.Properties.Add("realuserstatus", creds.RealUserStatus.ToString());
+
+			return appleAccount;
+		}
+	}
+
+	[System.Runtime.Versioning.SupportedOSPlatform("ios13.0")]
+	[System.Runtime.Versioning.SupportedOSPlatform("maccatalyst13.1")]
+	class AuthManager : NSObject, IASAuthorizationControllerDelegate, IASAuthorizationControllerPresentationContextProviding
+	{
+		public Task<ASAuthorizationAppleIdCredential> GetCredentialsAsync()
+			=> tcsCredential?.Task;
+After:
+			if (options.IncludeFullNameScope)
+			{
+				scopes.Add(ASAuthorizationScope.FullName);
+			}
+
+			if (options.IncludeEmailScope)
+			{
+				scopes.Add(ASAuthorizationScope.Email);
+			}
+
+			req.RequestedScopes = scopes.ToArray();
+			var controller = new ASAuthorizationController();
+
+			controller.Delegate = authManager;
+			controller.PresentationContextProvider = authManager;
+
+			controller.PerformRequests();
+
+			var creds = await authManager.GetCredentialsAsync();
+*/
+sMacCatalyst() && !OperatingSystem.IsMacCatalystVersionAtLeast(13, 1))
+			{
+				throw new FeatureNotSupportedException();
+			}
+
+			var provider = new ASAuthorizationAppleIdProvider();
+			var req = provider.CreateRequest();
+
+			authManager = new AuthManager(WindowStateManager.Default.GetCurrentUIWindow(true));
+
+			var scopes = new List<ASAuthorizationScope>(new[] { req });
+
+			if (options.IncludeFullNameScope)
+			{
+				scopes.Add(ASAuthorizationScope.FullName);
+			}
+
+			if (options.IncludeEmailScope)
+			{
+				scopes.Add(ASAuthorizationScope.Email);
+			}
+
+			req.RequestedScopes = scopes.ToArray();
+			var controller = new ASAuthorizationController(new[] { req });
+
+			controller.Delegate = authManager;
+			controller.PresentationContextProvider = authManager;
+
+			controller.PerformRequests();
+
+			var creds = await authManager.GetCredentialsAsync();
+
+			if (creds == null)
+			{
+				return null;
+			}
+
+			var idToken = new NSString(creds.IdentityToken, NSStringEncoding.UTF8).ToString();
+			var authCode = new NSString(creds.AuthorizationCode, NSStringEncoding.UTF8).ToString();
+			var name = NSPersonNameComponentsFormatter.GetLocalizedString(creds.FullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+
+			var appleAccount = new WebAuthenticatorResult();
+			appleAccount.Properties.Add("id_token", idToken);
+			appleAccount.Properties.Add("authorization_code", authCode);
+			appleAccount.Properties.Add("state", creds.State);
+			appleAccount.Properties.Add("email", creds.Email);
+			appleAccount.Properties.Add("user_id", creds.User);
+			appleAccount.Properties.Add("name", name);
+			appleAccount.Properties.Add("realuserstatus", creds.RealUserStatus.ToString());
+
+			return appleAccount;
+		}
+	}
+
+	[System.Runtime.Versioning.SupportedOSPlatform("ios13.0")]
+	[System.Runtime.Versioning.SupportedOSPlatform("maccatalyst13.1")]
+	class AuthManager : NSObject, IASAuthorizationControllerDelegate, IASAuthorizationControllerPresentationContextProviding
+	{
+		public Task<ASAuthorizationAppleIdCredential> GetCredentialsAsync()
+			=> tcsCredential?.Task;
+
+			if (creds == null)
+			{
+				return null;
+			}
 
 			var idToken = new NSString(creds.IdentityToken, NSStringEncoding.UTF8).ToString();
 			var authCode = new NSString(creds.AuthorizationCode, NSStringEncoding.UTF8).ToString();

@@ -44,32 +44,14 @@ namespace Microsoft.Maui.Authentication
 			var prefersEphemeralWebBrowserSession = webAuthenticatorOptions?.PrefersEphemeralWebBrowserSession ?? false;
 
 			if (!VerifyHasUrlSchemeOrDoesntRequire(callbackUrl.Scheme))
-				throw new InvalidOperationException("You must register your URL Scheme handler in your app's Info.plist.");
-
-			// Cancel any previous task that's still pending
-			if (tcsResponse?.Task != null && !tcsResponse.Task.IsCompleted)
-				tcsResponse.TrySetCanceled();
-
-			tcsResponse = new TaskCompletionSource<WebAuthenticatorResult>();
-			redirectUri = callbackUrl;
-			var scheme = redirectUri.Scheme;
-
-#if __IOS__
-			void AuthSessionCallback(NSUrl cbUrl, NSError error)
 			{
-				if (error == null)
-					OpenUrlCallback(cbUrl);
-				else if (error.Domain == asWebAuthenticationSessionErrorDomain && error.Code == asWebAuthenticationSessionErrorCodeCanceledLogin)
-					tcsResponse.TrySetCanceled();
-				else if (error.Domain == sfAuthenticationErrorDomain && error.Code == sfAuthenticationErrorCanceledLogin)
-					tcsResponse.TrySetCanceled();
-				else
-					tcsResponse.TrySetException(new NSErrorException(error));
-
-				was = null;
-				sf = null;
+				throw new InvalidOperationException("You must register your URL Scheme handler in your app's Info.plist.");
 			}
 
+			// Cancel any previous task that's still pending
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
 			if (OperatingSystem.IsIOSVersionAtLeast(12))
 			{
 				was = new ASWebAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
@@ -122,6 +104,251 @@ namespace Microsoft.Maui.Authentication
 					}
 				},
 			};
+After:
+			if (tcsResponse?.Task != null && !tcsResponse.Task.IsCompleted)
+			{
+				tcsResponse.TrySetCanceled();
+			}
+
+			tcsResponse = new TaskCompletionSource<WebAuthenticatorResult>();
+			redirectUri = callbackUrl;
+			var scheme = redirectUri.Scheme;
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+			if (OperatingSystem.IsIOSVersionAtLeast(12))
+			{
+				was = new ASWebAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
+
+				if (OperatingSystem.IsIOSVersionAtLeast(13))
+				{
+					var ctx = new ContextProvider(WindowStateManager.Default.GetCurrentUIWindow());
+					was.PresentationContextProvider = ctx;
+					was.PrefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
+				}
+				else if (prefersEphemeralWebBrowserSession)
+				{
+					ClearCookies();
+				}
+
+				using (was)
+				{
+#pragma warning disable CA1416 // Analyzer bug https://github.com/dotnet/roslyn-analyzers/issues/5938
+					was.Start();
+#pragma warning restore CA1416
+					return await tcsResponse.Task;
+				}
+			}
+
+			if (prefersEphemeralWebBrowserSession)
+				ClearCookies();
+
+#pragma warning disable CA1422 // 'SFAuthenticationSession' is obsoleted on: 'ios' 12.0 and later
+			if (OperatingSystem.IsIOSVersionAtLeast(11))
+			{
+				sf = new SFAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
+				using (sf)
+				{
+					sf.Start();
+					return await tcsResponse.Task;
+				}
+			}
+#pragma warning restore CA1422
+
+			// This is only on iOS9+ but we only support 10+ in Essentials anyway
+			var controller = new SFSafariViewController(WebUtils.GetNativeUrl(url), false)
+			{
+				Delegate = new NativeSFSafariViewControllerDelegate
+				{
+					DidFinishHandler = (svc) =>
+					{
+						// Cancel our task if it wasn't already marked as completed
+						if (!(tcsResponse?.Task?.IsCompleted ?? true))
+							tcsResponse.TrySetCanceled();
+					}
+				},
+			};
+After:
+			if (tcsResponse?.Task != null && !tcsResponse.Task.IsCompleted)
+			{
+				tcsResponse.TrySetCanceled();
+			}
+
+			tcsResponse = new TaskCompletionSource<WebAuthenticatorResult>();
+			redirectUri = callbackUrl;
+			var scheme = redirectUri.Scheme;
+*/
+			if (tcsResponse?.Task != null && !tcsResponse.Task.IsCompleted)
+			{
+				tcsResponse.TrySetCanceled();
+			}
+
+			tcsResponse = new TaskCompletionSource<WebAuthenticatorResult>();
+			redirectUri = callbackUrl;
+			var scheme = redirectUri.Scheme;
+
+#if __IOS__
+			void AuthSessionCallback(NSUrl cbUrl, NSError error)
+			{
+				if (error == null)
+				{
+					OpenUrlCallback(cbUrl);
+				}
+				else if (error.Domain == asWebAuthenticationSessionErrorDomain && error.Code == asWebAuthenticationSessionErrorCodeCanceledLogin)
+				{
+					tcsResponse.TrySetCanceled();
+				}
+				else if (error.Domain == sfAuthenticationErrorDomain && error.Code == sfAuthenticationErrorCanceledLogin)
+				{
+					tcsResponse.TrySetCanceled();
+				}
+				else
+				{
+					tcsResponse.TrySetException(new NSErrorException(error));
+				}
+
+				was = null;
+				sf = null;
+			}
+
+			if (OperatingSystem.IsIOSVersionAtLeast(12))
+			{
+				was = new ASWebAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
+
+				if (OperatingSystem.IsIOSVersionAtLeast(13))
+				{
+					var ctx = new ContextProvider(WindowStateManager.Default.GetCurrentUIWindow());
+					was.PresentationContextProvider = ctx;
+					was.PrefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
+				}
+				else if (prefersEphemeralWebBrowserSession)
+				{
+					ClearCookies();
+				}
+
+				using (was)
+				{
+#pragma warning disable CA1416 // Analyzer bug https://github.com/dotnet/roslyn-analyzers/issues/5938
+					was.Start();
+#pragma warning restore CA1416
+					return await tcsResponse.Task;
+				}
+			}
+
+			if (prefersEphemeralWebBrowserSession)
+			{
+				ClearCookies();
+			}
+
+#pragma warning disable CA1422 // 'SFAuthenticationSession' is obsoleted on: 'ios' 12.0 and later
+			if (OperatingSystem.IsIOSVersionAtLeast(11))
+			{
+				sf = new SFAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
+				using (sf)
+				{
+					sf.Start();
+					return await tcsResponse.Task;
+				}
+			}
+#pragma warning restore CA1422
+
+			// This is only on iOS9+ but we only support 10+ in Essentials anyway
+			var controller = new SFSafariViewController(WebUtils.GetNativeUrl(url), false)
+			{
+				Delegate = new NativeSFSafariViewControllerDelegate
+				{
+					DidFinishHandler = (svc) =>
+					{
+						// Cancel our task if it wasn't already marked as completed
+						if (!(tcsResponse?.Task?.IsCompleted ?? true))
+						{
+							tcsResponse.TrySetCanceled();
+						}
+					}
+				},
+			};
+
+#if __IOS__
+			void AuthSessionCallback(NSUrl cbUrl, NSError error)
+			{
+				if (error == null)
+				{
+					OpenUrlCallback(cbUrl);
+				}
+				else if (error.Domain == asWebAuthenticationSessionErrorDomain && error.Code == asWebAuthenticationSessionErrorCodeCanceledLogin)
+				{
+					tcsResponse.TrySetCanceled();
+				}
+				else if (error.Domain == sfAuthenticationErrorDomain && error.Code == sfAuthenticationErrorCanceledLogin)
+				{
+					tcsResponse.TrySetCanceled();
+				}
+				else
+				{
+					tcsResponse.TrySetException(new NSErrorException(error));
+				}
+
+				was = null;
+				sf = null;
+			}
+
+			if (OperatingSystem.IsIOSVersionAtLeast(12))
+			{
+				was = new ASWebAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
+
+				if (OperatingSystem.IsIOSVersionAtLeast(13))
+				{
+					var ctx = new ContextProvider(WindowStateManager.Default.GetCurrentUIWindow());
+					was.PresentationContextProvider = ctx;
+					was.PrefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
+				}
+				else if (prefersEphemeralWebBrowserSession)
+				{
+					ClearCookies();
+				}
+
+				using (was)
+				{
+#pragma warning disable CA1416 // Analyzer bug https://github.com/dotnet/roslyn-analyzers/issues/5938
+					was.Start();
+#pragma warning restore CA1416
+					return await tcsResponse.Task;
+				}
+			}
+
+			if (prefersEphemeralWebBrowserSession)
+			{
+				ClearCookies();
+			}
+
+#pragma warning disable CA1422 // 'SFAuthenticationSession' is obsoleted on: 'ios' 12.0 and later
+			if (OperatingSystem.IsIOSVersionAtLeast(11))
+			{
+				sf = new SFAuthenticationSession(WebUtils.GetNativeUrl(url), scheme, AuthSessionCallback);
+				using (sf)
+				{
+					sf.Start();
+					return await tcsResponse.Task;
+				}
+			}
+#pragma warning restore CA1422
+
+			// This is only on iOS9+ but we only support 10+ in Essentials anyway
+			var controller = new SFSafariViewController(WebUtils.GetNativeUrl(url), false)
+			{
+				Delegate = new NativeSFSafariViewControllerDelegate
+				{
+					DidFinishHandler = (svc) =>
+					{
+						// Cancel our task if it wasn't already marked as completed
+						if (!(tcsResponse?.Task?.IsCompleted ?? true))
+						{
+							tcsResponse.TrySetCanceled();
+						}
+					}
+				},
+			};
 
 			currentViewController = controller;
 			await WindowStateManager.Default.GetCurrentUIViewController().PresentViewControllerAsync(controller, true);
@@ -158,13 +385,71 @@ namespace Microsoft.Maui.Authentication
 		{
 			// If we aren't waiting on a task, don't handle the url
 			if (tcsResponse?.Task?.IsCompleted ?? true)
+
+/* Unmerged change from project 'Essentials(net8.0-maccatalyst)'
+Before:
 				return false;
+After:
+			{
+				return false;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
+				return false;
+After:
+			{
+				return false;
+			}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+				return false;
+After:
+			{
+				return false;
+			}
+*/
+			
+/* Unmerged change from project 'Essentials(net8.0-maccatalyst)'
+Before:
+					return false;
+After:
+				{
+					return false;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-ios)'
+Before:
+					return false;
+After:
+				{
+					return false;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-maccatalyst)'
+Before:
+					return false;
+After:
+				{
+					return false;
+				}
+*/
+{
+				return false;
+			}
 
 			try
 			{
 				// If we can't handle the url, don't
 				if (!WebUtils.CanHandleCallback(redirectUri, uri))
+				{
 					return false;
+				}
 
 				currentViewController?.DismissViewControllerAsync(true);
 				currentViewController = null;
@@ -184,7 +469,9 @@ namespace Microsoft.Maui.Authentication
 		{
 			// iOS11+ uses sfAuthenticationSession which handles its own url routing
 			if (OperatingSystem.IsIOSVersionAtLeast(11, 0) || OperatingSystem.IsTvOSVersionAtLeast(11, 0))
+			{
 				return true;
+			}
 
 			return AppInfoImplementation.VerifyHasUrlScheme(scheme);
 		}

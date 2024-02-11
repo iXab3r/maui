@@ -15,10 +15,33 @@ namespace Microsoft.Maui.Accessibility
 #pragma warning restore 618
 
 			if (manager == null || announcement == null)
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
 				return;
 
 			if (!(manager.IsEnabled || manager.IsTouchExplorationEnabled))
+After:
+			{
+*/
+			{
 				return;
+			}
+
+			if (!(manager.IsEnabled || manager.IsTouchExplorationEnabled))
+			{
+				return;
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Added:
+			}
+
+			if (!(manager.IsEnabled || manager.IsTouchExplorationEnabled))
+			{
+				return;
+			}
+*/
+			}
 
 			announcement.EventType = EventTypes.Announcement;
 			announcement.Text?.Add(new Java.Lang.String(text));

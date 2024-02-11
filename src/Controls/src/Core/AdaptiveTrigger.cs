@@ -89,13 +89,48 @@ namespace Microsoft.Maui.Controls
 		void UpdateState(bool knownAttached = false)
 		{
 			if (!knownAttached && !IsAttached)
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
 				return;
 
 			var w = _window?.Width ?? -1;
 			var h = _window?.Height ?? -1;
 
 			if (w == -1 || h == -1)
+After:
+			{
+*/
+			{
 				return;
+			}
+
+			var w = _window?.Width ?? -1;
+			var h = _window?.Height ?? -1;
+
+			if (w == -1 || h == -1)
+			{
+				return;
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.19041)'
+Before:
+			var mw = MinWindowWidth;
+			var mh = MinWindowHeight;
+After:
+			}
+
+			var w = _window?.Width ?? -1;
+			var h = _window?.Height ?? -1;
+
+			if (w == -1 || h == -1)
+			{
+				return;
+			}
+
+			var mw = MinWindowWidth;
+			var mh = MinWindowHeight;
+*/
+			}
 
 			var mw = MinWindowWidth;
 			var mh = MinWindowHeight;

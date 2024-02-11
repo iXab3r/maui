@@ -25,13 +25,33 @@ namespace Microsoft.Maui.Controls.Platform
 		protected override Microsoft.UI.Xaml.DataTemplate SelectTemplateCore(object item)
 		{
 			if (item is UI.Xaml.Controls.MenuFlyoutSeparator)
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
 				return SeperatorTemplate;
 
 			if (item is MenuItem)
 				return MenuItemTemplate;
+After:
+			{
+				return SeperatorTemplate;
+*/
+			{
+				return SeperatorTemplate;
+			}
+			}
+
+			if (item is MenuItem)
+			{
+				return MenuItemTemplate;
+			}
 
 			if (item is NavigationViewItemViewModel nvm && nvm.Data is MenuItem)
+			{
+			{
 				return MenuItemTemplate;
+			}
+			}
 
 			return BaseShellItemTemplate;
 		}

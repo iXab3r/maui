@@ -52,7 +52,34 @@ namespace Microsoft.Maui.Controls.Platform
 		void RemovePage(Page page, bool popping)
 		{
 			if (page is null)
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
 				return;
+After:
+			{
+				return;
+			}
+*/
+			{
+			{
+				return;
+
+/* Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)'
+Before:
+			page
+				.FindMauiContext()
+				?.GetNavigationRootManager()
+				?.Disconnect();
+
+			page.Handler?.DisconnectHandler();
+After:
+			}
+
+			page
+				.FindMauiContext();
+*/
+			}
 
 			var mauiContext = page.FindMauiContext() ??
 				throw new InvalidOperationException("Maui Context removed from outgoing page too early");
@@ -61,7 +88,9 @@ namespace Microsoft.Maui.Controls.Platform
 			Container.RemovePage(windowManager.RootView);
 
 			if (!popping)
+			{
 				return;
+			}
 
 			page
 				.FindMauiContext()
@@ -89,7 +118,9 @@ namespace Microsoft.Maui.Controls.Platform
 				}
 
 				if (Container is null || newPage is null)
+				{
 					return;
+				}
 
 				// pushing modal
 				if (!popping)
