@@ -11,6 +11,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>NU1901;NU1902;NU1903;RS0041</NoWarn><!-- Disabled low-med-high vulnurabilities report and public API warnings, remove after net9 upgrade  -->
   </PropertyGroup>
 
   <ItemGroup>
