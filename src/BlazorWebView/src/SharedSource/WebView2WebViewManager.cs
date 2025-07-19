@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Microsoft.Web.WebView2.Wpf;
 #if WEBVIEW2_WINFORMS
 using System.Diagnostics;
 using Microsoft.AspNetCore.Components.WebView.WindowsForms;
@@ -59,7 +58,7 @@ namespace Microsoft.AspNetCore.Components.WebView.WebView2
 
 		internal static readonly Uri AppOriginUri = new(AppOrigin);
 		private readonly ILogger _logger;
-		private readonly WebView2CompositionControl _webview;
+		private readonly WebView2Control _webview;
 		private readonly Task<bool> _webviewReadyTask;
 		private readonly string _contentRootRelativeToAppRoot;
 
@@ -85,7 +84,7 @@ namespace Microsoft.AspNetCore.Components.WebView.WebView2
 		/// <param name="blazorWebViewInitialized">Callback invoked after the webview is initialized.</param>
 		/// <param name="logger">Logger to send log messages to.</param>
 		internal WebView2WebViewManager(
-			WebView2CompositionControl webview,
+			WebView2Control webview,
 			IServiceProvider services,
 			Dispatcher dispatcher,
 			IFileProvider fileProvider,

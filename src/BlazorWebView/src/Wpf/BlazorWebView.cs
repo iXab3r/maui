@@ -16,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Web.WebView2.Wpf;
 using WebView2Control = Microsoft.Web.WebView2.Wpf.WebView2;
 
 namespace Microsoft.AspNetCore.Components.WebView.Wpf
@@ -89,7 +88,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 		#endregion
 
 		private const string WebViewTemplateChildName = "WebView";
-		private WebView2CompositionControl? _webview;
+		private WebView2Control? _webview;
 		private WebView2WebViewManager? _webviewManager;
 		private bool _isDisposed;
 
@@ -116,7 +115,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 
 			Template = new ControlTemplate
 			{
-				VisualTree = new FrameworkElementFactory(typeof(WebView2CompositionControl), WebViewTemplateChildName)
+				VisualTree = new FrameworkElementFactory(typeof(WebView2Control), WebViewTemplateChildName)
 			};
 
 			ApplyTabNavigation(IsTabStop);
@@ -130,7 +129,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 		/// is controlled by the <see cref="BlazorWebView"/> that is hosting it.
 		/// </remarks>
 		[Browsable(false)]
-		public WebView2CompositionControl WebView => _webview!;
+		public WebView2Control WebView => _webview!;
 
 		/// <summary>
 		/// Path to the host page within the application's static files. For example, <code>wwwroot\index.html</code>.
@@ -238,7 +237,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Wpf
 
 			if (_webview == null)
 			{
-				_webview = (WebView2CompositionControl)GetTemplateChild(WebViewTemplateChildName);
+				_webview = (WebView2Control)GetTemplateChild(WebViewTemplateChildName);
 				StartWebViewCoreIfPossible();
 			}
 		}

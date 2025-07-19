@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.Web.WebView2.Wpf;
 #if WEBVIEW2_WINFORMS
 using Microsoft.Web.WebView2.Core;
 using WebView2Control = Microsoft.Web.WebView2.WinForms.WebView2;
@@ -30,7 +29,7 @@ namespace Microsoft.AspNetCore.Components.WebView
 		/// <summary>
 		/// Gets the <see cref="WebView2Control"/> instance that was initialized.
 		/// </summary>
-		public WebView2CompositionControl WebView { get; internal set; }
+		public WebView2Control WebView { get; internal set; }
 #elif ANDROID
 		/// <summary>
 		/// Gets the <see cref="AWebView"/> instance that was initialized.
