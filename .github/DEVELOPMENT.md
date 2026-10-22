@@ -1,5 +1,7 @@
 # Development Guide
 
+> Upstream snapshot guidance: "current stable" tools and `main` routing below refer to the upstream context of this source. For this fork, follow [AGENTS.md](../AGENTS.md), the named fork branch, and checked-in build configuration before choosing tools or commands.
+
 This page contains steps to build and run the .NET MAUI repository from source. If you are looking to build apps with .NET MAUI please head over to the links in the [README](https://github.com/dotnet/maui/blob/main/README.md) to get started.
 
 ## Requirements

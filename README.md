@@ -1,5 +1,7 @@
 # .NET Multi-platform App UI (.NET MAUI)
 
+Fork contributor guidance: [AGENTS.md](AGENTS.md). This branch preserves an older upstream snapshot; badges, release news, and upstream contribution links below do not describe the current status of this fork.
+
 [![Build Status](https://dev.azure.com/xamarin/public/_apis/build/status/MAUI-public?repoName=dotnet%2Fmaui&branchName=main&label=Public)](https://dev.azure.com/xamarin/public/_build/latest?definitionId=57&repoName=dotnet%2Fmaui&branchName=main) [![Build Status](https://devdiv.visualstudio.com/DevDiv/_apis/build/status/MAUI?repoName=dotnet%2Fmaui&branchName=main&label=Private)](https://devdiv.visualstudio.com/DevDiv/_build/latest?definitionId=13330&repoName=dotnet%2Fmaui&branchName=main)
 
 [.NET Multi-platform App UI (.NET MAUI)](https://dotnet.microsoft.com/en-us/apps/maui) is a cross-platform framework for creating mobile and desktop apps with C# and XAML. Using .NET MAUI, you can develop apps that can run on Android, iOS, iPadOS, macOS, and Windows from a single shared codebase.
@@ -17,7 +19,7 @@
 
 ![.NET MAUI Weather App on all platforms](Assets/maui-weather-hero-sm.png)
 
-## Current News
+## Historical Upstream Release News
 
 * November 8, 2022 - [Announcing .NET MAUI for .NET 7 General Availability](https://devblogs.microsoft.com/dotnet/dotnet-maui-dotnet-7/)
 * May 23, 2022 - [Introducing .NET MAUI – One Codebase, Many Platforms](https://devblogs.microsoft.com/dotnet/introducing-dotnet-maui-one-codebase-many-platforms/)
